@@ -13,5 +13,9 @@ namespace BackupHelper.model
         public DateTime LastTimeExecuted { get; set; }
         public List<Option> Options { get; set; }
 
+        public Profile Clone()
+        {
+            return (Profile)this.MemberwiseClone();
+        }
     }
 }

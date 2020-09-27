@@ -1,4 +1,6 @@
-﻿namespace BackupHelper
+﻿using System.Windows.Forms;
+
+namespace BackupHelper
 {
     partial class FormOptionsMenu
     {
@@ -39,12 +41,12 @@
             this.columnHeaderCleanDestinyDir = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderDeleteCommonFiles = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStripOptionsList = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.cloneOptionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ToolStripMenuItemRemove = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemCopySourcePath = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemCopyDestinyPath = new System.Windows.Forms.ToolStripMenuItem();
             this.openSourceFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openDestinyFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.buttonDeleteOption = new System.Windows.Forms.Button();
-            this.buttonEditOption = new System.Windows.Forms.Button();
             this.buttonExecute = new System.Windows.Forms.Button();
             this.progressBarOptions = new System.Windows.Forms.ProgressBar();
             this.buttonCancel = new System.Windows.Forms.Button();
@@ -55,7 +57,6 @@
             this.labelMoveOption = new System.Windows.Forms.Label();
             this.labelMoveOptionUp = new System.Windows.Forms.Label();
             this.labelMoveOptionDown = new System.Windows.Forms.Label();
-            this.cloneOptionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripOptionsList.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -138,63 +139,56 @@
             // 
             this.contextMenuStripOptionsList.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.cloneOptionToolStripMenuItem,
+            this.ToolStripMenuItemRemove,
             this.toolStripMenuItemCopySourcePath,
             this.toolStripMenuItemCopyDestinyPath,
             this.openSourceFolderToolStripMenuItem,
             this.openDestinyFolderToolStripMenuItem});
             this.contextMenuStripOptionsList.Name = "contextMenuStrip1";
-            this.contextMenuStripOptionsList.Size = new System.Drawing.Size(181, 136);
-            this.contextMenuStripOptionsList.Opening += new System.ComponentModel.CancelEventHandler(ContextMenuStripOptionsList_Opening);
+            this.contextMenuStripOptionsList.Size = new System.Drawing.Size(179, 136);
+            this.contextMenuStripOptionsList.Opening += new System.ComponentModel.CancelEventHandler(this.ContextMenuStripOptionsList_Opening);
+            // 
+            // cloneOptionToolStripMenuItem
+            // 
+            this.cloneOptionToolStripMenuItem.Name = "cloneOptionToolStripMenuItem";
+            this.cloneOptionToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
+            this.cloneOptionToolStripMenuItem.Text = "Clone";
+            this.cloneOptionToolStripMenuItem.Click += new System.EventHandler(this.CloneOptionToolStripMenuItem_Click);
+            // 
+            // ToolStripMenuItemRemove
+            // 
+            this.ToolStripMenuItemRemove.Name = "ToolStripMenuItemRemove";
+            this.ToolStripMenuItemRemove.Size = new System.Drawing.Size(178, 22);
+            this.ToolStripMenuItemRemove.Text = "Remove";
+            this.ToolStripMenuItemRemove.Click += new System.EventHandler(this.ToolStripMenuItemRemove_Click);
             // 
             // toolStripMenuItemCopySourcePath
             // 
             this.toolStripMenuItemCopySourcePath.Name = "toolStripMenuItemCopySourcePath";
-            this.toolStripMenuItemCopySourcePath.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItemCopySourcePath.Size = new System.Drawing.Size(178, 22);
             this.toolStripMenuItemCopySourcePath.Text = "Copy source path";
             this.toolStripMenuItemCopySourcePath.Click += new System.EventHandler(this.ToolStripMenuItemCopySourcePath_Click);
             // 
             // toolStripMenuItemCopyDestinyPath
             // 
             this.toolStripMenuItemCopyDestinyPath.Name = "toolStripMenuItemCopyDestinyPath";
-            this.toolStripMenuItemCopyDestinyPath.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItemCopyDestinyPath.Size = new System.Drawing.Size(178, 22);
             this.toolStripMenuItemCopyDestinyPath.Text = "Copy destiny path";
             this.toolStripMenuItemCopyDestinyPath.Click += new System.EventHandler(this.ToolStripMenuItemCopyDestinyPath_Click);
             // 
             // openSourceFolderToolStripMenuItem
             // 
             this.openSourceFolderToolStripMenuItem.Name = "openSourceFolderToolStripMenuItem";
-            this.openSourceFolderToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openSourceFolderToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.openSourceFolderToolStripMenuItem.Text = "Open source folder";
             this.openSourceFolderToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItemOpenSourceFolder_Click);
             // 
             // openDestinyFolderToolStripMenuItem
             // 
             this.openDestinyFolderToolStripMenuItem.Name = "openDestinyFolderToolStripMenuItem";
-            this.openDestinyFolderToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openDestinyFolderToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.openDestinyFolderToolStripMenuItem.Text = "Open destiny folder";
             this.openDestinyFolderToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItemOpenDestinyFolder_Click);
-            // 
-            // buttonDeleteOption
-            // 
-            this.buttonDeleteOption.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonDeleteOption.Location = new System.Drawing.Point(188, 224);
-            this.buttonDeleteOption.Name = "buttonDeleteOption";
-            this.buttonDeleteOption.Size = new System.Drawing.Size(95, 30);
-            this.buttonDeleteOption.TabIndex = 3;
-            this.buttonDeleteOption.Text = "Delete Option";
-            this.buttonDeleteOption.UseVisualStyleBackColor = true;
-            this.buttonDeleteOption.Click += new System.EventHandler(this.ButtonDeleteOption_Click);
-            // 
-            // buttonEditOption
-            // 
-            this.buttonEditOption.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonEditOption.Location = new System.Drawing.Point(94, 224);
-            this.buttonEditOption.Name = "buttonEditOption";
-            this.buttonEditOption.Size = new System.Drawing.Size(95, 30);
-            this.buttonEditOption.TabIndex = 2;
-            this.buttonEditOption.Text = "Edit Option";
-            this.buttonEditOption.UseVisualStyleBackColor = true;
-            this.buttonEditOption.Click += new System.EventHandler(this.ButtonEditOption_Click);
             // 
             // buttonExecute
             // 
@@ -202,7 +196,7 @@
             this.buttonExecute.BackColor = System.Drawing.Color.White;
             this.buttonExecute.FlatAppearance.BorderColor = System.Drawing.Color.Red;
             this.buttonExecute.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.buttonExecute.Location = new System.Drawing.Point(282, 224);
+            this.buttonExecute.Location = new System.Drawing.Point(94, 224);
             this.buttonExecute.Name = "buttonExecute";
             this.buttonExecute.Size = new System.Drawing.Size(95, 30);
             this.buttonExecute.TabIndex = 4;
@@ -290,7 +284,7 @@
             this.labelMoveOption.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.labelMoveOption.AutoSize = true;
             this.labelMoveOption.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelMoveOption.Location = new System.Drawing.Point(390, 232);
+            this.labelMoveOption.Location = new System.Drawing.Point(206, 232);
             this.labelMoveOption.Name = "labelMoveOption";
             this.labelMoveOption.Size = new System.Drawing.Size(115, 13);
             this.labelMoveOption.TabIndex = 9;
@@ -303,7 +297,7 @@
             this.labelMoveOptionUp.BackColor = System.Drawing.SystemColors.ControlLight;
             this.labelMoveOptionUp.Font = new System.Drawing.Font("Impact", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelMoveOptionUp.ForeColor = System.Drawing.Color.DarkGreen;
-            this.labelMoveOptionUp.Location = new System.Drawing.Point(507, 226);
+            this.labelMoveOptionUp.Location = new System.Drawing.Point(323, 226);
             this.labelMoveOptionUp.Name = "labelMoveOptionUp";
             this.labelMoveOptionUp.Size = new System.Drawing.Size(25, 25);
             this.labelMoveOptionUp.TabIndex = 5;
@@ -317,19 +311,12 @@
             this.labelMoveOptionDown.BackColor = System.Drawing.SystemColors.ControlLight;
             this.labelMoveOptionDown.Font = new System.Drawing.Font("Impact", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelMoveOptionDown.ForeColor = System.Drawing.Color.DarkGreen;
-            this.labelMoveOptionDown.Location = new System.Drawing.Point(533, 226);
+            this.labelMoveOptionDown.Location = new System.Drawing.Point(349, 226);
             this.labelMoveOptionDown.Name = "labelMoveOptionDown";
             this.labelMoveOptionDown.Size = new System.Drawing.Size(25, 25);
             this.labelMoveOptionDown.TabIndex = 6;
             this.labelMoveOptionDown.Text = "˅";
             this.labelMoveOptionDown.Click += new System.EventHandler(this.LabelMoveOptionDown_Click);
-            // 
-            // cloneOptionToolStripMenuItem
-            // 
-            this.cloneOptionToolStripMenuItem.Name = "cloneOptionToolStripMenuItem";
-            this.cloneOptionToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.cloneOptionToolStripMenuItem.Text = "Clone option";
-            this.cloneOptionToolStripMenuItem.Click += new System.EventHandler(this.CloneOptionToolStripMenuItem_Click);
             // 
             // FormOptionsMenu
             // 
@@ -347,8 +334,6 @@
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.progressBarOptions);
             this.Controls.Add(this.buttonExecute);
-            this.Controls.Add(this.buttonEditOption);
-            this.Controls.Add(this.buttonDeleteOption);
             this.Controls.Add(this.listViewOptions);
             this.Controls.Add(this.buttonAddOption);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
@@ -356,7 +341,7 @@
             this.Name = "FormOptionsMenu";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Options - Backup Helper";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FormOptionsMenu_FormClosed);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormOptionsMenu_FormClosing);
             this.contextMenuStripOptionsList.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -366,14 +351,11 @@
         #endregion
 
         private System.Windows.Forms.Button buttonAddOption;
-        private System.Windows.Forms.ListView listViewOptions;
-        private System.Windows.Forms.Button buttonDeleteOption;
         private System.Windows.Forms.ColumnHeader columnHeaderSourcePath;
         private System.Windows.Forms.ColumnHeader columnHeaderDestinyPath;
         private System.Windows.Forms.ColumnHeader columnHeaderMethod;
         private System.Windows.Forms.ColumnHeader columnHeaderMoveSubfolders;
         private System.Windows.Forms.ColumnHeader columnHeaderKeepOrigin;
-        private System.Windows.Forms.Button buttonEditOption;
         private System.Windows.Forms.Button buttonExecute;
         private System.Windows.Forms.ProgressBar progressBarOptions;
         private System.Windows.Forms.Button buttonCancel;
@@ -392,5 +374,7 @@
         private System.Windows.Forms.Label labelMoveOptionUp;
         private System.Windows.Forms.Label labelMoveOptionDown;
         private System.Windows.Forms.ToolStripMenuItem cloneOptionToolStripMenuItem;
+        public ListView listViewOptions;
+        private ToolStripMenuItem ToolStripMenuItemRemove;
     }
 }

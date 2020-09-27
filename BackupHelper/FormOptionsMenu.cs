@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using FileControlUtility;
 
 namespace BackupHelper
 {
@@ -23,13 +24,13 @@ namespace BackupHelper
 
     public partial class FormOptionsMenu : Form
     {
-        private readonly Profile Profile;
-        private readonly FormProfileMenu ProfileMenu;
+        public readonly Profile Profile;
         public List<Option> Options;
-        public FileControl FileControl;
+        private readonly FormProfileMenu ProfileMenu;
+        public FileControlImpl FileControl;
         private Thread ExecutionThread;
         private readonly FormCancelExecution CancelExecutionForm;
-        private bool OptionIsExecuting = false;
+        //private bool OptionIsExecuting = false;
 
         //--FORM RESIZING VARIABLES
         private readonly int InitialFormHeight;
@@ -37,23 +38,23 @@ namespace BackupHelper
         private readonly int ListOptionHeight = 17;
         private readonly int AditionalListViewItemCount = 6;
         private readonly int InitialListViewItemCount = 10;
-        private readonly int MaximumListViewItemCount;
+        private readonly int MaximumListViewItemCount;        
 
-        public FormOptionsMenu(FormProfileMenu profileMenu,Profile profile)
+        public FormOptionsMenu(FormProfileMenu profileMenu, Profile profile)
         {
             //this.listViewOptions.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ContextMenuStripOptionsList_Click);
 
             InitializeComponent();
 
-            this.Profile = profile;
-            this.ProfileMenu = profileMenu;
-            this.CancelExecutionForm = new FormCancelExecution();
-            this.Text = "Profile:  " + this.Profile.Name;
+            Profile = profile;
+            ProfileMenu = profileMenu;
+            CancelExecutionForm = new FormCancelExecution();
+            Text = "Profile:  " + this.Profile.Name;
             if (profileMenu.LastReport != null)
                 buttonShowResult.Enabled = true;
 
-            InitialFormHeight = this.Bounds.Height;
-            InitialFormWidth = this.Bounds.Width;
+            InitialFormHeight = Bounds.Height;
+            InitialFormWidth = Bounds.Width;
             AditionalListViewItemCount = 6;
             InitialListViewItemCount = 10;
             MaximumListViewItemCount = AditionalListViewItemCount + InitialListViewItemCount;
@@ -65,15 +66,15 @@ namespace BackupHelper
         {
             try
             {
-                OptionAccess optionAccess = new OptionAccess();
-                this.Options = optionAccess.ListProfileOptions(this.Profile).OrderBy(x => x.ListViewIndex).ToList();
+                Options = DBAccess.ListProfileOptions(this.Profile).OrderBy(x => x.ListViewIndex).ToList();
 
-                foreach (Option option in this.Options)
+                foreach (Option option in Options)
                 {
                     ListViewItem item = new ListViewItem();
-                    EditListViewItem(item, option);
+                    EditListViewItem(option, item);
                     listViewOptions.Items.Add(item);
                 }
+
                 ResizeForm();
             }
             catch (Exception e)
@@ -84,8 +85,6 @@ namespace BackupHelper
 
         private void UpdateOptionListViewIndexes()
         {
-            OptionAccess oa = new OptionAccess();
-
             foreach (ListViewItem item in listViewOptions.Items)
             {
                 Option option = Options.Find(x => x.Id == int.Parse(item.Tag.ToString()));
@@ -93,14 +92,14 @@ namespace BackupHelper
                 try
                 {
                     option.ListViewIndex = item.Index;
-                    oa.UpdateOptionListViewIndex(option);
+                    DBAccess.UpdateOptionListViewIndex(option);
                 }
                 catch (Exception)
                 {
                     try
                     {
                         option.ListViewIndex = currentIndex;
-                        oa.UpdateOptionListViewIndex(option);
+                        DBAccess.UpdateOptionListViewIndex(option);
                     }
                     catch (Exception) {}
                     throw;
@@ -108,7 +107,7 @@ namespace BackupHelper
             }
         }
 
-        private void ResizeForm()
+        public void ResizeForm()
         {
             //CHANGING FORM HEIGHT RESPONSIVELY DEPENDING ON NUMBER OF OPTIONS
             if (this.Options.Count() > InitialListViewItemCount && this.Options.Count() < MaximumListViewItemCount)
@@ -123,46 +122,13 @@ namespace BackupHelper
         {
             try
             {
-                Option opt = new Option
-                {
-                    SourcePath = "C:\\origin...",
-                    DestinyPath = "C:\\destiny...",
-                    TransferMethod = new TransferMethod(){Id = 1},
-                    MoveSubFolders = true,
-                    KeepOriginFiles = true,
-                    CleanDestinyDirectory = false,
-                    AllowIgnoreFileExt = false,
-                    DeleteUncommonFiles = false,
-                    Profile = this.Profile,
-                    AllowOnlyFileExtensions = new List<FileExtension>(),
-                    IgnoredFileExtensions = new List<FileExtension>()
-                };
-
-                FormEditOption feo = new FormEditOption(this, opt);
-                feo.Show();
+                FormEditOption form = new FormEditOption(this);
+                form.Show();
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
             }
-        }
-
-        public void AddOption(Option option)
-        {
-            OptionAccess optAccess = new OptionAccess();
-            option.ListViewIndex = listViewOptions.Items.Count;
-            optAccess.AddOption(option);
-            this.Options.Add(option);
-            this.ProfileMenu.UpdateLastTimeModified(this.Profile);
-            ListViewItem item = new ListViewItem();
-            EditListViewItem(item, option);
-            listViewOptions.Items.Add(item);
-            ResizeForm();
-        }
-
-        private void ButtonEditOption_Click(object sender, EventArgs args)
-        {
-            EditSelectedOption();
         }
 
         private void EditSelectedOption()
@@ -184,46 +150,53 @@ namespace BackupHelper
             }
         }
 
-        public void EditOption(Option option)
+        public void EditListViewItem(Option option, ListViewItem item = null)
         {
-            OptionAccess oa = new OptionAccess();
-            oa.UpdateOption(option);
-            this.ProfileMenu.UpdateLastTimeModified(this.Profile);
-            EditListViewItem(listViewOptions.SelectedItems[0], option);
-        }
-
-        public void EditListViewItem(ListViewItem item, Option opt)
-        {
-            string transferMethod = !opt.CleanDestinyDirectory ? opt.TransferMethod.MethodName : "None";
+            if (item == null)
+                item = GetListViewItemById(option.Id);
+                
+            string transferMethod = !option.CleanDestinyDirectory ? option.GetTransferMethodDescription(option.FileNameConflictMethod) : "None";
 
             //string[] range = Enumerable.Repeat("", Enum.GetNames(typeof(ListViewOptionSubItemIndex)).Length).ToArray();
 
             item.SubItems.Clear();
+            item.Text = option.SourcePath;
             item.SubItems.AddRange(new string[] {
-                opt.SourcePath,
-                opt.DestinyPath,
+                option.DestinyPath,
                 transferMethod,
-                opt.MoveSubFolders.ToString(),
-                opt.KeepOriginFiles.ToString(),
-                opt.CleanDestinyDirectory.ToString(),
-                opt.DeleteUncommonFiles.ToString()
+                option.MoveSubFolders.ToString(),
+                option.KeepOriginFiles.ToString(),
+                option.CleanDestinyDirectory.ToString(),
+                option.DeleteUncommonFiles.ToString()
             });
             
-            item.Tag = opt.Id;
+            item.Tag = option.Id;
         }
 
-        private void FormOptionsMenu_FormClosed(object sender, EventArgs args)
+        private ListViewItem GetListViewItemById(int id)
+        {
+            foreach (ListViewItem item in listViewOptions.Items)
+                if (int.Parse(item.Tag.ToString()) == id) return item;
+            return null;
+        }
+
+        private void FormOptionsMenu_FormClosing(object sender, FormClosingEventArgs args)
         {
             try
             {
-                if (this.OptionIsExecuting && !this.FileControl.CancelExecution)
+                if (ExecutionThread != null && ExecutionThread.IsAlive)
                 {
-                    this.FileControl.CancelExecution = true;
-                    this.CancelExecutionForm.ShowDialog();
-                    while (OptionIsExecuting == true) { };
-                    CancelExecutionForm.Close();
+                    args.Cancel = true;
+
+                    if (MessageBox.Show("Abort transfer?", "", MessageBoxButtons.YesNo) == DialogResult.No)
+                        return;
+
+                    Enabled = false;
+                    FileControl.CancelExecution = true;
+                    CancelExecutionForm.ShowDialog();
                 }
-                this.ProfileMenu.Show();
+
+                ProfileMenu.Show();
             }
             catch (Exception e)
             {
@@ -241,19 +214,16 @@ namespace BackupHelper
             try
             {
                 ListViewItem selectedItem = listViewOptions.SelectedItems[0];
-                FormConfirmAction form = new FormConfirmAction("Delete selected option...");
-                form.ShowDialog();
-                if (form.ActionIsConfirmed)
+                string text = "Delete selected option?";
+                if (MessageBox.Show(text, "", MessageBoxButtons.OKCancel) == DialogResult.OK)
                 {
-                    OptionAccess optAccess = new OptionAccess();
                     var option = this.Options.Find(x => x.Id == int.Parse(selectedItem.Tag.ToString()));
-                    optAccess.DeleteOption(option);
+                    DBAccess.DeleteOption(option);
                     Options.Remove(option);
                     selectedItem.Remove();
                     UpdateOptionListViewIndexes();
                     ResizeForm();
                 }
-                form.Close();
             }
             catch (ArgumentOutOfRangeException)
             {
@@ -268,36 +238,36 @@ namespace BackupHelper
         {
             try
             {
-
                 if (this.Options.Count() == 0)
                 {
-                    MessageBox.Show("No options were added. Transfer canceled.");
+                    MessageBox.Show("No options were added.");
                     return;
                 }
-                this.FileControl = new FileControl(this);
+
+                this.FileControl = new FileControlImpl(this);
+
                 try
                 {
-                    progressBarOptions.Maximum = FileControl.FilesTotal(this.Options);
+                    progressBarOptions.Maximum = FileControl.FilesTotal(Options.ToList<TransferSettings>());
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show($"{e.Message} Transfer canceled.");
+                    MessageBox.Show($"{e.Message}{Environment.NewLine}Transfer canceled.");
                     return;
                 }
 
                 this.Options = this.Options.OrderBy(x => x.ListViewIndex).ToList();
 
-                this.ProfileMenu.UpdateLastTimeExecuted(this.Profile);
+                Program.UpdateLastTimeExecuted(this.Profile);
 
-                this.OptionIsExecuting = true;
+                //this.OptionIsExecuting = true;
                 LogManager.BeginWritter();
-                LogManager.WriteLine("##### Transfer date: " + DateTime.Now.ToLongDateString());
+                LogManager.WriteLine("");
+                //LogManager.WriteLine("##### Transfer date: " + DateTime.Now.ToLongDateString());
                 progressBarOptions.Step = 1;
                 progressBarOptions.Enabled = true;
                 this.Cursor = Cursors.AppStarting;
                 buttonAddOption.Visible = false;
-                buttonEditOption.Visible = false;
-                buttonDeleteOption.Visible = false;
                 buttonExecute.Visible = false;
                 buttonShowResult.Visible = false;
                 checkBoxShowResult.Visible = false;
@@ -311,21 +281,14 @@ namespace BackupHelper
 
                 ExecutionThread = new Thread(() =>
                 {
-                    foreach (Option opt in this.Options)
+
+                    try
                     {
-                        try
-                        {
-                            FileControl.ManageFiles(opt);
-                        }
-                        catch (Exception e2)
-                        {
-                            if (FileControl.CancelExecution == false)
-                            {
-                                FileControl.CancelExecution = true;
-                                LogManager.WriteLine("Aborting...");
-                            }
-                            MessageBox.Show($"Error: {e2.Message} Aborting.");
-                        }
+                        FileControl.ManageFiles(Options.ToList<TransferSettings>());
+                    }
+                    catch (Exception e)
+                    {
+                        MessageBox.Show("Error: " + e.Message);
                     }
 
                     Invoke(new Action(() =>
@@ -342,20 +305,20 @@ namespace BackupHelper
                         buttonCancel.BackColor = Color.FromArgb(255, 192, 192);
                         buttonCancel.Visible = false;
                         buttonAddOption.Visible = true;
-                        buttonEditOption.Visible = true;
-                        buttonDeleteOption.Visible = true;
                         buttonExecute.Visible = true;
                         checkBoxShowResult.Visible = true;
                         buttonShowResult.Visible = true;
                         labelMoveOption.Visible = true;
                         labelMoveOptionDown.Visible = true;
                         labelMoveOptionUp.Visible = true;
-                        this.OptionIsExecuting = false;
+                        //this.OptionIsExecuting = false;
                         buttonShowResult.Enabled = true;
+                        this.Enabled = true;
 
                         ProfileMenu.LastReport = new FormReport(this, FileControl.TransFilesReports, FileControl.NotTransFilesReports,
                             FileControl.RenamedFilesReports, FileControl.CreatedDirReports, FileControl.ReplacedFilesReports, 
                             FileControl.RemovedFilesAndDirReports);
+                        
                         if (checkBoxShowResult.Checked)
                             ProfileMenu.LastReport.Show();
                     }));
@@ -370,9 +333,10 @@ namespace BackupHelper
 
         private void ButtonCancel_Click(object sender, EventArgs args)
         {
-            if (OptionIsExecuting && !this.FileControl.CancelExecution)
+            if (ExecutionThread.IsAlive)
             {
-                this.FileControl.CancelExecution = true;
+                FileControl.CancelExecution = true;
+                Enabled = false;
                 CancelExecutionForm.ShowDialog(this);
             }
         }
@@ -386,22 +350,14 @@ namespace BackupHelper
             }));
         }
 
-        public void ShowErrorDialog(string message,bool enableRepeatButton)
-        {
-            //if (!this.fileControl.CancelExecution)
-            //{
-                Invoke(new Action(() =>
-                {
-                    FormErrorDialog errorDialog = new FormErrorDialog(this, message, enableRepeatButton);
-                    errorDialog.ShowDialog();
-                }));
-            //}
-            //else
-            //{
-            //    LogManager.WriteLine("Canceling operation...");
-            //    MessageBox.Show(message);
-            //}
-        }
+        //public void ShowErrorDialog(string message,bool enableRepeatButton)
+        //{
+        //    Invoke(new Action(() =>
+        //    {
+        //        FormErrorDialog errorDialog = new FormErrorDialog(message, enableRepeatButton);
+        //        errorDialog.ShowDialog();
+        //    }));
+        //}
 
         private void ContextMenuStripOptionsList_Opening(object sender, CancelEventArgs args)
         {
@@ -489,16 +445,15 @@ namespace BackupHelper
                 Option selectedOption = null;
                 Option previousOption = null;
 
-                OptionAccess oa = new OptionAccess();
                 try
                 {
                     selectedOption = Options.Find(x => x.Id == int.Parse(selectedItem.Tag.ToString()));
                     selectedOption.ListViewIndex = previousItemIndex;
-                    oa.UpdateOptionListViewIndex(selectedOption);
+                    DBAccess.UpdateOptionListViewIndex(selectedOption);
 
                     previousOption = Options.Find(x => x.Id == int.Parse(previousItem.Tag.ToString()));
                     previousOption.ListViewIndex = selectedItemIndex;
-                    oa.UpdateOptionListViewIndex(previousOption);
+                    DBAccess.UpdateOptionListViewIndex(previousOption);
 
                 }
                 catch (Exception)
@@ -507,8 +462,8 @@ namespace BackupHelper
                     {
                         selectedOption.ListViewIndex = selectedItemIndex;
                         previousOption.ListViewIndex = previousItemIndex;
-                        oa.UpdateOptionListViewIndex(selectedOption);
-                        oa.UpdateOptionListViewIndex(previousOption);
+                        DBAccess.UpdateOptionListViewIndex(selectedOption);
+                        DBAccess.UpdateOptionListViewIndex(previousOption);
                     }
                     catch (Exception) { }
                     throw;
@@ -542,17 +497,15 @@ namespace BackupHelper
                 Option selectedOption = null;
                 Option nextOption = null;
 
-                OptionAccess oa = new OptionAccess();
-
                 try
                 {
                     selectedOption = Options.Find(x => x.Id == int.Parse(selectedItem.Tag.ToString()));
                     selectedOption.ListViewIndex = nextItemIndex;
-                    oa.UpdateOptionListViewIndex(selectedOption);
+                    DBAccess.UpdateOptionListViewIndex(selectedOption);
 
                     nextOption = Options.Find(x => x.Id == int.Parse(nextItem.Tag.ToString()));
                     nextOption.ListViewIndex = selectedItemIndex;
-                    oa.UpdateOptionListViewIndex(nextOption);
+                    DBAccess.UpdateOptionListViewIndex(nextOption);
                 }
                 catch (Exception)
                 {
@@ -560,8 +513,8 @@ namespace BackupHelper
                     {
                         selectedOption.ListViewIndex = selectedItemIndex;
                         nextOption.ListViewIndex = nextItemIndex;
-                        oa.UpdateOptionListViewIndex(selectedOption);
-                        oa.UpdateOptionListViewIndex(nextOption);
+                        DBAccess.UpdateOptionListViewIndex(selectedOption);
+                        DBAccess.UpdateOptionListViewIndex(nextOption);
                     }
                     catch (Exception) {}
                     throw;
@@ -588,14 +541,14 @@ namespace BackupHelper
             {
                 Option selectedOption = Options.Find(
                        x => x.Id == int.Parse(listViewOptions.SelectedItems[0].Tag.ToString()));
-                Option clonedOption = (Option)selectedOption.Clone();
+
+                Option clonedOption = selectedOption.Clone();
                 clonedOption.ListViewIndex = listViewOptions.Items.Count;
-                OptionAccess oa = new OptionAccess();
-                oa.AddOption(clonedOption);
+                DBAccess.AddOption(clonedOption);
                 Options.Add(clonedOption);
-                this.ProfileMenu.UpdateLastTimeModified(this.Profile);
+                Program.UpdateLastTimeModified(this.Profile);
                 ListViewItem item = new ListViewItem();
-                EditListViewItem(item, clonedOption);
+                EditListViewItem(clonedOption, item);
                 listViewOptions.Items.Add(item);
                 ResizeForm();
             }
@@ -603,6 +556,11 @@ namespace BackupHelper
             {
                 MessageBox.Show(e.Message);
             }
+        }
+
+        private void ToolStripMenuItemRemove_Click(object sender, EventArgs e)
+        {
+            DeleteSelectedOption();
         }
     }
 }

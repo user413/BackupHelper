@@ -10,11 +10,5 @@ namespace BackupHelper
             for (int c = 0; c < 500; c++)
                 progressBarCanceling.PerformStep();
         }
-
-        //public void LoadProgressBar()
-        //{
-        //    for (int c = 0; c < 1000; c++)
-        //        progressBarCanceling.PerformStep();
-        //}
     }
 }
