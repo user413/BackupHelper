@@ -19,7 +19,7 @@ namespace BackupHelper
 
     public partial class FormProfileMenu : Form
     {
-        private List<Profile> Profiles;
+        public List<Profile> Profiles;
         public FormReport LastReport;
 
         //--FORM RESIZING VARIABLES
@@ -33,8 +33,8 @@ namespace BackupHelper
         public FormProfileMenu()
         {
             InitializeComponent();
-            this.KeyPreview = true;
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormEditProfile_KeyDown);
+            KeyPreview = true;
+            listViewProfile.KeyDown += new KeyEventHandler(this.FormProfileMenu_KeyDown);
             InitialFormWidth = this.Bounds.Width;
             InitialFormHeight = this.Bounds.Height;
             AditionalListViewItemCount = 6;
@@ -47,15 +47,15 @@ namespace BackupHelper
         {
             try
             {
-                ProfileAccess pf = new ProfileAccess();
-                this.Profiles = pf.ListProfiles().OrderBy(x => x.ListViewIndex).ToList();
+                this.Profiles = DBAccess.ListProfiles().OrderBy(x => x.ListViewIndex).ToList();
                 
                 foreach (Profile prof in Profiles)
                 {
                     ListViewItem item = new ListViewItem();
-                    EditListViewItem(item, prof);
+                    EditListViewItem(prof, item);
                     listViewProfile.Items.Add(item);
                 }
+
                 ResizeForm();
             }
             catch (Exception e)
@@ -66,8 +66,6 @@ namespace BackupHelper
 
         private void UpdateProfileListViewIndexes()
         {
-            ProfileAccess pa = new ProfileAccess();
-
             foreach (ListViewItem item in listViewProfile.Items)
             {
                 Profile profile = Profiles.Find(x => x.Id == int.Parse(item.Tag.ToString()));
@@ -76,14 +74,14 @@ namespace BackupHelper
                 try
                 {
                     profile.ListViewIndex = item.Index;
-                    pa.UpdateProfileListViewIndex(profile);
+                    DBAccess.UpdateProfileListViewIndex(profile);
                 }
                 catch (Exception)
                 {
                     try
                     {
                         profile.ListViewIndex = currentIndex;
-                        pa.UpdateProfileListViewIndex(profile);
+                        DBAccess.UpdateProfileListViewIndex(profile);
                     }
                     catch (Exception) { }
                     throw;
@@ -91,7 +89,7 @@ namespace BackupHelper
             }
         }
 
-        private void ResizeForm()
+        public void ResizeForm()
         {
             //-- CHANGING FORM HEIGHT RESPONSIVELY DEPENDING ON NUMBER OF PROFILES
             if (this.Profiles.Count() > InitialListViewItemCount && this.Profiles.Count() < MaximumListViewItemCount)
@@ -111,9 +109,16 @@ namespace BackupHelper
         {
             try
             {
-                FormOptionsMenu optionMenu = new FormOptionsMenu(this,
+                if(listViewProfile.SelectedItems.Count <= 0)
+                {
+                    MessageBox.Show("Click a profile first.");
+                    return;
+                }
+
+                FormOptionsMenu optionsMenu = new FormOptionsMenu(this,
                     Profiles.Find(x => x.Id == int.Parse(listViewProfile.SelectedItems[0].Tag.ToString())));
-                optionMenu.Show(this);
+
+                optionsMenu.Show(this);
                 this.Hide();
             }
             catch (ArgumentOutOfRangeException)
@@ -130,7 +135,7 @@ namespace BackupHelper
         {
             try
             {
-                FormAddProfile addProfile = new FormAddProfile(this);
+                FormEditProfile addProfile = new FormEditProfile(this);
                 addProfile.ShowDialog(this);
             }
             catch (Exception e)
@@ -139,40 +144,36 @@ namespace BackupHelper
             }
         }
 
-        private void EditListViewItem(ListViewItem item, Profile profile)
+        public void EditListViewItem(Profile profile, ListViewItem item = null)
         {
-            string[] range = Enumerable.Repeat("", Enum.GetNames(typeof(ListViewProfileSubItemIndex)).Length).ToArray();
-            item.SubItems.AddRange(range);
+            if (item == null)
+                item = GetListViewItemById(profile.Id);
+
+            //string[] range = Enumerable.Repeat("", Enum.GetNames(typeof(ListViewProfileSubItemIndex)).Length).ToArray();
+            //item.SubItems.AddRange(range);
+
             item.Tag = profile.Id;
-            item.SubItems[(int)ListViewProfileSubItemIndex.INDEX_NAME].Text = profile.Name;
-            item.SubItems[(int)ListViewProfileSubItemIndex.INDEX_TIME_MODIFIED].Text = profile.LastTimeModified == DateTime.MinValue ? "Never" : profile.LastTimeModified.ToString();
-            item.SubItems[(int)ListViewProfileSubItemIndex.INDEX_TIME_EXECUTED].Text = profile.LastTimeExecuted == DateTime.MinValue ? "Never" : profile.LastTimeExecuted.ToString();
-            item.SubItems[(int)ListViewProfileSubItemIndex.INDEX_CREATED_AT].Text = profile.TimeCreated.ToString();
+            item.Text = profile.Name;
+            item.SubItems.AddRange(new string[] {
+                profile.LastTimeModified == DateTime.MinValue ? "Never" : profile.LastTimeModified.ToString(),
+                profile.LastTimeExecuted == DateTime.MinValue ? "Never" : profile.LastTimeExecuted.ToString(),
+                profile.TimeCreated.ToString(),
+            });
         }
 
-        public void AddProfile(Profile profile)
-        {
-            ProfileAccess pa = new ProfileAccess();
-            profile.ListViewIndex = listViewProfile.Items.Count;
-            pa.AddProfile(profile);
-            Profiles.Add(profile);
-            ListViewItem item = new ListViewItem();
-            EditListViewItem(item, profile);
-            listViewProfile.Items.Add(item);
-            ResizeForm();
-        }
-
-        private void ButtonEditProfile_Click(object sender, EventArgs args)
-        {
-            ShowEditProfileForm();
-        }
-
-        private void ShowEditProfileForm()
+        private void EditSelectedProfileName()
         {
             try
             {
+                if (listViewProfile.SelectedItems.Count <= 0)
+                {
+                    MessageBox.Show("Click a profile first.");
+                    return;
+                }
+
                 FormEditProfile edit = new FormEditProfile(this,
                     Profiles.Find(x => x.Id == int.Parse(listViewProfile.SelectedItems[0].Tag.ToString())));
+
                 edit.ShowDialog(this);
             }
             catch (ArgumentOutOfRangeException)
@@ -185,40 +186,26 @@ namespace BackupHelper
             }
         }
 
-        public void ChangeProfileName(Profile profile)
-        {
-            ProfileAccess pa = new ProfileAccess();
-            pa.UpdateProfile(profile);
-            listViewProfile.SelectedItems[0].Text = profile.Name;
-        }
-
-        private void ButtonDeleteProfile_Click(object sender, EventArgs args)
-        {
-            DeleteSelectedProfile();
-        }
-
         private void DeleteSelectedProfile()
         {
             try
             {
                 ListViewItem selectedItem = listViewProfile.SelectedItems[0];
-                FormConfirmAction form = new FormConfirmAction("Delete selected profile...");
-                form.ShowDialog();
-                if (form.ActionIsConfirmed)
+                Profile profile = Profiles.Find(x => x.Id == int.Parse(selectedItem.Tag.ToString()));
+                string text = $"Delete \"{profile.Name}\"?";
+
+                if (MessageBox.Show(text, "", MessageBoxButtons.OKCancel) == DialogResult.OK)
                 {
-                    ProfileAccess pa = new ProfileAccess();
-                    Profile profile = Profiles.Find(x => x.Id == int.Parse(selectedItem.Tag.ToString()));
-                    pa.DeleteProfile(profile);
+                    DBAccess.DeleteProfile(profile);
                     Profiles.Remove(profile);
                     listViewProfile.Items.Remove(selectedItem);
                     UpdateProfileListViewIndexes();
                     ResizeForm();
                 }
-                form.Close();
             }
             catch (ArgumentOutOfRangeException)
             {
-                MessageBox.Show("Select a profile for deleting.");
+                MessageBox.Show("Select a profile to delete.");
             }
             catch (Exception e)
             {
@@ -262,23 +249,7 @@ namespace BackupHelper
             }
         }
 
-        public void UpdateLastTimeModified(Profile profile)
-        { 
-            ProfileAccess pa = new ProfileAccess();
-            profile.LastTimeModified = DateTime.Now;
-            pa.UpdateProfile(profile);
-            GetListViewItemById(profile.Id).SubItems[(int)ListViewProfileSubItemIndex.INDEX_TIME_MODIFIED].Text = profile.LastTimeModified.ToString();
-        }
-
-        public void UpdateLastTimeExecuted(Profile profile)
-        {
-            ProfileAccess pa = new ProfileAccess();
-            profile.LastTimeExecuted = DateTime.Now;
-            pa.UpdateProfile(profile);
-            GetListViewItemById(profile.Id).SubItems[(int)ListViewProfileSubItemIndex.INDEX_TIME_EXECUTED].Text = profile.LastTimeExecuted.ToString();
-        }
-
-        private ListViewItem GetListViewItemById(int id)
+        public ListViewItem GetListViewItemById(int id)
         {
             foreach(ListViewItem item in listViewProfile.Items)
                 if (int.Parse(item.Tag.ToString()) == id) return item;
@@ -299,24 +270,22 @@ namespace BackupHelper
                 Profile selectedProfile = null;
                 Profile previousProfile = null;
 
-                ProfileAccess pa = new ProfileAccess();
-
                 try
                 {
                     selectedProfile = Profiles.Find(x => x.Id == int.Parse(selectedItem.Tag.ToString()));
                     selectedProfile.ListViewIndex = selectedItem.Index - 1;
-                    pa.UpdateProfileListViewIndex(selectedProfile);
+                    DBAccess.UpdateProfileListViewIndex(selectedProfile);
 
                     previousProfile = Profiles.Find(x => x.Id == int.Parse(previousItem.Tag.ToString()));
                     previousProfile.ListViewIndex = selectedItem.Index;
-                    pa.UpdateProfileListViewIndex(previousProfile);
+                    DBAccess.UpdateProfileListViewIndex(previousProfile);
                 }
                 catch (Exception)
                 {
                     selectedProfile.ListViewIndex = selectedItem.Index;
                     previousProfile.ListViewIndex = previousItem.Index;
-                    pa.UpdateProfileListViewIndex(selectedProfile);
-                    pa.UpdateProfileListViewIndex(previousProfile);
+                    DBAccess.UpdateProfileListViewIndex(selectedProfile);
+                    DBAccess.UpdateProfileListViewIndex(previousProfile);
                     throw;
                 }
 
@@ -349,17 +318,15 @@ namespace BackupHelper
                 Profile selectedProfile = null;
                 Profile nextProfile = null;
 
-                ProfileAccess pa = new ProfileAccess();
-
                 try
                 {
                     selectedProfile = Profiles.Find(x => x.Id == int.Parse(selectedItem.Tag.ToString()));
                     selectedProfile.ListViewIndex = nextItemIndex;
-                    pa.UpdateProfileListViewIndex(selectedProfile);
+                    DBAccess.UpdateProfileListViewIndex(selectedProfile);
 
                     nextProfile = Profiles.Find(x => x.Id == int.Parse(nextItem.Tag.ToString()));
                     nextProfile.ListViewIndex = selectedItemIndex;
-                    pa.UpdateProfileListViewIndex(nextProfile);
+                    DBAccess.UpdateProfileListViewIndex(nextProfile);
                 }
                 catch (Exception)
                 {
@@ -367,8 +334,8 @@ namespace BackupHelper
                     {
                         selectedProfile.ListViewIndex = selectedItem.Index;
                         nextProfile.ListViewIndex = nextItem.Index;
-                        pa.UpdateProfileListViewIndex(selectedProfile);
-                        pa.UpdateProfileListViewIndex(nextProfile);
+                        DBAccess.UpdateProfileListViewIndex(selectedProfile);
+                        DBAccess.UpdateProfileListViewIndex(nextProfile);
                     }
                     catch (Exception){}
                     throw;
@@ -389,10 +356,64 @@ namespace BackupHelper
             }
         }
 
-        private void FormEditProfile_KeyDown(object sender,KeyEventArgs args)
+        private void FormProfileMenu_KeyDown(object sender, KeyEventArgs args)
         {
             if (args.KeyCode == Keys.F2 && listViewProfile.SelectedItems.Count > 0)
-                ShowEditProfileForm();
+                EditSelectedProfileName();
+        }
+
+        private void ToolStripMenuItemChangeName_Click(object sender, EventArgs e)
+        {
+            EditSelectedProfileName();
+        }
+
+        private void ToolStripMenuItemDeleteProfile_Click(object sender, EventArgs e)
+        {
+            DeleteSelectedProfile();
+        }
+
+        private void ToolStripMenuItemClone_Click(object sender, EventArgs e)
+        {
+            Profile profile = Profiles.Find(x => x.Id == int.Parse(listViewProfile.SelectedItems[0].Tag.ToString()));
+
+            Profile clonedProfile = profile.Clone();
+            clonedProfile.Name = GenerateEnumeratedName(clonedProfile.Name);
+            List<Option> clonedOptions = new List<Option>();
+
+            foreach (Option option in DBAccess.ListProfileOptions(profile))
+            {
+                Option clonedOption= option.Clone();
+                clonedOption.Profile = clonedProfile;
+                clonedOptions.Add(clonedOption);
+            }
+
+            clonedProfile.ListViewIndex = listViewProfile.Items.Count;
+            DBAccess.AddProfile(clonedProfile);
+            Profiles.Add(clonedProfile);
+
+            foreach (Option clonedOption in clonedOptions)
+                DBAccess.AddOption(clonedOption);
+
+            ListViewItem item = new ListViewItem();
+            EditListViewItem(clonedProfile, item);
+            listViewProfile.Items.Add(item);
+            ResizeForm();
+        }
+
+        private string GenerateEnumeratedName(string name)
+        {
+            int c = 1;
+            string newName = $"{name} (cloned)";
+            if (Profiles.Find(x => x.Name == newName) == null) return newName;
+
+            while (true)
+            {
+                newName = $"{name} (cloned) ({c})";
+
+                if (Profiles.Find(x => x.Name == newName) == null)
+                    return newName;
+                c++;
+            }
         }
     }
 }

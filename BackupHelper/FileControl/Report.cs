@@ -1,4 +1,4 @@
-﻿namespace BackupHelper.model
+﻿namespace FileControlUtility
 {
     public class TransferedFilesReport
     {

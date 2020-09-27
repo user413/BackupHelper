@@ -1,40 +1,46 @@
-﻿using System;
+﻿using FileControlUtility;
+using System;
 using System.Windows.Forms;
 
 namespace BackupHelper
 {
     public partial class FormErrorDialog : Form
     {
-        private readonly FormOptionsMenu OptionsMenu;
+        private readonly Type ActionType;
+        public object Result;
 
-        public FormErrorDialog(FormOptionsMenu menu, string message, bool enableRepeatButton)
+        public FormErrorDialog(Type actionType, string message)
         {
             InitializeComponent();
             textBoxErrorDialog.Text = message;
-            this.OptionsMenu = menu;
-            this.buttonTryAgain.Enabled = enableRepeatButton;
+            ActionType = actionType;
+            if(actionType == typeof(FileTransferErrorActionNonRepeatable))
+                this.buttonTryAgain.Enabled = false;
         }
 
         private void ButtonErrorDialogIgnore_Click(object sender, EventArgs e)
         {
-            this.OptionsMenu.FileControl.JumpFileExecution = true;
-            this.OptionsMenu.FileControl.RepeatFileExecution = false;
-            LogManager.WriteLine("Continued by the user");
+            if (ActionType == typeof(FileTransferErrorActionRepeatable))
+                Result = FileTransferErrorActionRepeatable.JUMP;
+            if (ActionType == typeof(FileTransferErrorActionNonRepeatable))
+                Result = FileTransferErrorActionNonRepeatable.JUMP;
+
             this.Close();
         }
 
         private void ButtonErrorDialogCancel_Click(object sender, EventArgs e)
         {
-            this.OptionsMenu.FileControl.CancelExecution = true;
-            this.OptionsMenu.FileControl.RepeatFileExecution = false;
-            LogManager.WriteLine("Canceled by user...");
+            if (ActionType == typeof(FileTransferErrorActionRepeatable))
+                Result = FileTransferErrorActionRepeatable.CANCEL;
+            if (ActionType == typeof(FileTransferErrorActionNonRepeatable))
+                Result = FileTransferErrorActionNonRepeatable.CANCEL;
+
             this.Close();
         }
 
         private void ButtonTryAgain_Click(object sender, EventArgs e)
         {
-            this.OptionsMenu.FileControl.RepeatFileExecution = true;
-            LogManager.WriteLine("Repeated by user...");
+            Result = FileTransferErrorActionRepeatable.REPEAT;
             this.Close();
         }
     }

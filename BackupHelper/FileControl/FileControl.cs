@@ -1,27 +1,24 @@
-﻿using BackupHelper.model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace BackupHelper
+namespace FileControlUtility
 {
     public class FileControl
     {
-        public List<TransferedFilesReport> TransFilesReports { get; set; }
-        public List<NotTransferedFilesReport> NotTransFilesReports { get; set; }
-        public List<RenamedFilesReport> RenamedFilesReports { get; set; }
-        public List<CreatedDirectoriesReport> CreatedDirReports { get; set; }
-        public List<ReplacedFilesReport> ReplacedFilesReports { get; set; }
-        public List<RemovedFilesAndDirectoriesReport> RemovedFilesAndDirReports { get; set; }
+        public List<TransferedFilesReport> TransFilesReports { get; }
+        public List<NotTransferedFilesReport> NotTransFilesReports { get; }
+        public List<RenamedFilesReport> RenamedFilesReports { get; }
+        public List<CreatedDirectoriesReport> CreatedDirReports { get; }
+        public List<ReplacedFilesReport> ReplacedFilesReports { get; }
+        public List<RemovedFilesAndDirectoriesReport> RemovedFilesAndDirReports { get; }
 
-        public bool CancelExecution { get; set; }
-        public bool JumpFileExecution { get; set; }
-        public bool RepeatFileExecution { get; set; }
+        public bool CancelExecution { get; set; } = false;
+        private bool JumpFileExecution;
+        private bool RepeatFileExecution;
 
-        private readonly FormOptionsMenu OptionsMenu;
-
-        public FileControl(FormOptionsMenu menu)
+        public FileControl()
         {
             TransFilesReports = new List<TransferedFilesReport>();
             NotTransFilesReports = new List<NotTransferedFilesReport>();
@@ -29,60 +26,80 @@ namespace BackupHelper
             CreatedDirReports = new List<CreatedDirectoriesReport>();
             ReplacedFilesReports = new List<ReplacedFilesReport>();
             RemovedFilesAndDirReports = new List<RemovedFilesAndDirectoriesReport>();
+        }
+
+        private void ClearReportLists()
+        {
+            TransFilesReports.Clear();
+            NotTransFilesReports.Clear();
+            RenamedFilesReports.Clear();
+            CreatedDirReports.Clear();
+            ReplacedFilesReports.Clear();
+            RemovedFilesAndDirReports.Clear();
+        }
+
+        public void ManageFiles(List<TransferSettings> settingsList)
+        {
+            ClearReportLists();
 
             CancelExecution = false;
 
-            this.OptionsMenu = menu;
+            Exception fatalException = null;
+
+            HandleLogMessage($"##### New transfer ({DateTime.Now.ToLongDateString()})");
+
+            foreach (TransferSettings settings in settingsList)
+            {
+                try
+                {
+                    ManageTransferSettings(settings);
+                }
+                catch (Exception e)
+                {
+                    if (fatalException == null)
+                    {
+                        fatalException = e;
+                        CancelExecution = true;
+                    }
+                }
+            }
+
+            //HandleLogMessage("DONE");
+
+            if (fatalException != null) throw fatalException;
         }
 
-        //private string originPath;
-        //private string destinyPath;
-        //private bool moveSubFolders;
-        //private bool keepOriginFiles;
-
-        //public FileControl(string originPath, string destinyPath, bool moveSubFolders, bool keepOriginFiles)
-        //{
-        //    this.originPath = originPath;
-        //    this.destinyPath = destinyPath;
-        //    this.moveSubFolders = moveSubFolders;
-        //    this.keepOriginFiles = keepOriginFiles;
-        //}
-
-        public void ManageFiles(Option option)
+        private void ManageTransferSettings(TransferSettings settings)
         {
-            bool AllowOnlyExt = false;
-            bool IgnoreExt = false;
+            //bool AllowOnlyExt = false;
+            //bool IgnoreExt = false;
 
             if (!this.CancelExecution)
             {
-                LogManager.WriteLine("## Transfering from: " + option.SourcePath);
-                LogManager.WriteLine("## To: " + option.DestinyPath);
-                LogManager.WriteLine("## "+option.TransferMethod.MethodName);
-                switch (option.TransferMethod.Id)
+                HandleLogMessage("## Transfering from: " + settings.SourcePath);
+                HandleLogMessage("## To: " + settings.DestinyPath);
+
+                switch (settings.FileNameConflictMethod)
                 {
-                    case (int)TransferMethodType.TYPE_DO_NOT_MOVE:
-                        LogManager.WriteLine("## For repeated filenames: do not move");
+                    case FileNameConflictMethod.DO_NOT_MOVE:
+                        HandleLogMessage("## For repeated filenames: do not move");
                         break;
-                    case (int)TransferMethodType.TYPE_REPLACE_ALL:
-                        LogManager.WriteLine("## For repeated filenames: replace all");
+                    case FileNameConflictMethod.REPLACE_ALL:
+                        HandleLogMessage("## For repeated filenames: replace all");
                         break;
-                    case (int)TransferMethodType.TYPE_REPLACE_DIFFERENT:
-                        LogManager.WriteLine("## For repeated filenames: replace unique files (binary comparison)");
+                    case FileNameConflictMethod.REPLACE_DIFFERENT:
+                        HandleLogMessage("## For repeated filenames: replace unique files (binary comparison)");
                         break;
-                    case (int)TransferMethodType.TYPE_RENAME_DIFFERENT:
-                        LogManager.WriteLine("## For repeated filenames: rename unique files (binary comparison)");
+                    case FileNameConflictMethod.RENAME_DIFFERENT:
+                        HandleLogMessage("## For repeated filenames: rename unique files (binary comparison)");
                         break;
                 }
-                LogManager.WriteLine("## Include subfolders: " + option.MoveSubFolders);
-                LogManager.WriteLine("## Keep Files: " + option.KeepOriginFiles);
-                LogManager.WriteLine("## Clean destiny: " + option.CleanDestinyDirectory);
-                LogManager.WriteLine("## Delete uncommon: " + option.DeleteUncommonFiles);
-                LogManager.WriteLine("## Manage extensions: " + option.AllowIgnoreFileExt);
 
-                if (option.AllowOnlyFileExtensions.Count > 0)
-                    AllowOnlyExt = true;
-                else
-                    IgnoreExt = true;
+                HandleLogMessage("## Include subfolders: " + settings.MoveSubFolders);
+                HandleLogMessage("## Keep Files: " + settings.KeepOriginFiles);
+                HandleLogMessage("## Clean destiny: " + settings.CleanDestinyDirectory);
+                HandleLogMessage("## Delete uncommon: " + settings.DeleteUncommonFiles);
+                HandleLogMessage("## Manage extensions: " + settings.AllowIgnoreFileExt);
             }
 
             string[] originFiles = null;
@@ -92,113 +109,117 @@ namespace BackupHelper
             string[] destinyFiles = null;
             string[] destinyDirectories = null;
 
+            //GenerateFilesAndDirectoriesLists();
+
             try
             {
-                LogManager.WriteLine("Generating files and directories lists...");
+                HandleLogMessage("Generating files and directories lists...");
 
-                if(option.MoveSubFolders || !option.KeepOriginFiles)
-                    originDirectories = Directory.GetDirectories(option.SourcePath, "*", SearchOption.AllDirectories);
+                if(settings.MoveSubFolders || !settings.KeepOriginFiles)
+                    originDirectories = Directory.GetDirectories(settings.SourcePath, "*", SearchOption.AllDirectories);
 
-                if (option.MoveSubFolders)
+                if (settings.MoveSubFolders)
                 {
-                    originFiles = Directory.GetFiles(option.SourcePath, "*", SearchOption.AllDirectories);
+                    originFiles = Directory.GetFiles(settings.SourcePath, "*", SearchOption.AllDirectories);
 
-                    if (option.DeleteUncommonFiles)
+                    if (settings.DeleteUncommonFiles)
                     {
-                        destinyDirectories = Directory.GetDirectories(option.DestinyPath, "*", SearchOption.AllDirectories);
-                        destinyFiles = Directory.GetFiles(option.DestinyPath, "*", SearchOption.AllDirectories);
+                        destinyDirectories = Directory.GetDirectories(settings.DestinyPath, "*", SearchOption.AllDirectories);
+                        destinyFiles = Directory.GetFiles(settings.DestinyPath, "*", SearchOption.AllDirectories);
                     }
                 }
                 else
                 {
-                    originFiles = Directory.GetFiles(option.SourcePath, "*", SearchOption.TopDirectoryOnly);
+                    originFiles = Directory.GetFiles(settings.SourcePath, "*", SearchOption.TopDirectoryOnly);
 
-                    if (option.DeleteUncommonFiles)
-                        destinyFiles = Directory.GetFiles(option.DestinyPath, "*", SearchOption.TopDirectoryOnly);
+                    if (settings.DeleteUncommonFiles)
+                        destinyFiles = Directory.GetFiles(settings.DestinyPath, "*", SearchOption.TopDirectoryOnly);
                 }
 
                 //-- GENERATING COMMON TRIMMED FILE PATHS
                 foreach (string file in originFiles)
-                    trimmedFiles.Add(file.Replace(option.SourcePath, ""));
-                if(option.MoveSubFolders) foreach (string originDirectory in originDirectories)
-                    trimmedDirectories.Add(originDirectory.Replace(option.SourcePath, ""));
+                    trimmedFiles.Add(file.Replace(settings.SourcePath, ""));
+                if(settings.MoveSubFolders) foreach (string originDirectory in originDirectories)
+                    trimmedDirectories.Add(originDirectory.Replace(settings.SourcePath, ""));
             }
             catch (Exception e)
             {
-                LogManager.WriteLine($"Error: {e} when retrieving files/directories lists");
+                HandleLogMessage($"An error has occurred while retrieving files/directories lists. {e.Message} Aborting.");
                 throw;
             }
 
             if (!this.CancelExecution)
             {
-                if (option.CleanDestinyDirectory)
+                if (settings.CleanDestinyDirectory)
                 {
-                    LogManager.WriteLine("Cleaning destiny directory...");
+                    HandleLogMessage("Cleaning destiny directory...");
                     try
                     {
-                        if (Directory.Exists(option.DestinyPath))
+                        if (Directory.Exists(settings.DestinyPath))
                         {
-                            DirectoryInfo dir = new DirectoryInfo(option.DestinyPath);
+                            DirectoryInfo dir = new DirectoryInfo(settings.DestinyPath);
                             foreach (FileInfo file in dir.GetFiles())
                             {
                                 file.Delete();
-                                LogManager.WriteLine($"File deleted: {file.Name}");
+                                HandleLogMessage($"File deleted: {file.Name}");
                             }
                             foreach (DirectoryInfo subdirs in dir.GetDirectories())
                             {
                                 subdirs.Delete(true);
-                                LogManager.WriteLine($"Folder deleted: {subdirs.Name}");
+                                HandleLogMessage($"Folder deleted: {subdirs.Name}");
                             }
-                            //for each (string dire in Directory.GetDirectories(option.DestinyPath, "*", SearchOption.AllDirectories)) Directory.Delete(dire);
+                            //for each (string dire in Directory.GetDirectories(settings.DestinyPath, "*", SearchOption.AllDirectories)) Directory.Delete(dire);
                         }
                     }
                     catch (Exception e)
                     {
-                        LogManager.WriteLine($"Error: {e.ToString()} when cleaning destiny directory");
+                        HandleLogMessage($"An error has occurred while cleaning destiny directory. {e.Message} Aborting.");
                         throw;
                     }
                 }
                 try
                 {
-                    LogManager.WriteLine("Creating directories...");
-                    if (!Directory.Exists(option.DestinyPath))
+                    HandleLogMessage("Creating directories...");
+                    if (!Directory.Exists(settings.DestinyPath))
                     {
                         try
                         {
-                            Directory.CreateDirectory(option.DestinyPath);
+                            Directory.CreateDirectory(settings.DestinyPath);
                             CreatedDirReports.Add(new CreatedDirectoriesReport
                             {
-                                Directory = option.DestinyPath,
+                                Directory = settings.DestinyPath,
                                 Origin = "None (created)"
                             });
-                            LogManager.WriteLine($"Directory created: " + option.DestinyPath);
+                            HandleLogMessage($"Directory created: " + settings.DestinyPath);
                         }
                         catch (Exception e)
                         {
-                            LogManager.WriteLine($"Error: {e.ToString()} when creating the directory {option.DestinyPath}");
-                            throw new Exception($"An error has occurred when creating the directory {option.DestinyPath}. {e.Message} Aborting.");
+                            HandleLogMessage($"Error: {e} when creating the directory {settings.DestinyPath} Aborting.");
+                            //throw new Exception($"An error has occurred when creating the directory {settings.DestinyPath}. {e.Message} Aborting.");
+                            throw;
                         }
                     }
-                    if (option.MoveSubFolders)
+                    if (settings.MoveSubFolders)
                     {
                         foreach (string trimmedDirectory in trimmedDirectories)
                         {
-                            if (!Directory.Exists(option.DestinyPath + trimmedDirectory))
+                            if (!Directory.Exists(settings.DestinyPath + trimmedDirectory))
                             {
                                 try
                                 {
-                                    Directory.CreateDirectory(option.DestinyPath + trimmedDirectory);
+                                    Directory.CreateDirectory(settings.DestinyPath + trimmedDirectory);
                                     CreatedDirReports.Add(new CreatedDirectoriesReport
                                     {
-                                        Directory = option.DestinyPath + trimmedDirectory,
-                                        Origin = option.SourcePath + trimmedDirectory
+                                        Directory = settings.DestinyPath + trimmedDirectory,
+                                        Origin = settings.SourcePath + trimmedDirectory
                                     });
-                                    LogManager.WriteLine($"Directory created: " + option.DestinyPath + trimmedDirectory);
+                                    HandleLogMessage($"Directory created: " + settings.DestinyPath + trimmedDirectory);
                                 }
                                 catch (Exception e)
                                 {
-                                    LogManager.WriteLine($"Error: {e.ToString()} when creating the directory {option.DestinyPath + trimmedDirectory}");
-                                    throw new Exception($"An error has occurred when creating the directory {option.DestinyPath + trimmedDirectory}. {e.Message} Aborting");
+                                    HandleLogMessage($"Error: {e} when creating the directory {settings.DestinyPath + trimmedDirectory} Aborting.");
+                                    //throw new Exception($"An error has occurred while creating the directory {settings.DestinyPath + trimmedDirectory}. {e.Message} Aborting");
+                                    throw;
                                 }
                             }
                         }
@@ -210,22 +231,22 @@ namespace BackupHelper
                     {
                         NotTransFilesReports.Add(new NotTransferedFilesReport
                         {
-                            File = option.SourcePath + trimmedFile,
-                            Destiny = option.DestinyPath + trimmedFile.Substring(0, trimmedFile.LastIndexOf("\\")),
+                            File = settings.SourcePath + trimmedFile,
+                            Destiny = settings.DestinyPath + trimmedFile.Substring(0, trimmedFile.LastIndexOf("\\")),
                             Reason = "Canceled"
                         });
                     }
                     throw;
                 }
 
-                LogManager.WriteLine("Transfering files..."); 
+                HandleLogMessage("Transfering files..."); 
             }
 
             foreach (string trimmedPathWithFileName in trimmedFiles)
             {
-                string originPathWithFileName = option.SourcePath + trimmedPathWithFileName;
-                string destinyPathWithFileName = option.DestinyPath + trimmedPathWithFileName;
-                string destinyPathWOFileName = option.DestinyPath + trimmedPathWithFileName.Substring(0, trimmedPathWithFileName.LastIndexOf("\\"));
+                string originPathWithFileName = settings.SourcePath + trimmedPathWithFileName;
+                string destinyPathWithFileName = settings.DestinyPath + trimmedPathWithFileName;
+                string destinyPathWOFileName = settings.DestinyPath + trimmedPathWithFileName.Substring(0, trimmedPathWithFileName.LastIndexOf("\\"));
                 string currentFileName = trimmedPathWithFileName.Substring(trimmedPathWithFileName.LastIndexOf("\\") + 1);
 
                 if (this.CancelExecution)
@@ -239,53 +260,61 @@ namespace BackupHelper
                     continue;
                 }
 
-                OptionsMenu.ShowCurrentFileExecution(currentFileName);
+                HandleCurrentFileExecution(trimmedPathWithFileName);
                 //System.Threading.Thread.Sleep(5000);
 
-                //-- MANAGING EXTENSIONS
-                if (option.AllowIgnoreFileExt)
+                //-- MANAGING SPECIFIED FILENAMES AND EXTENSIONS
+                if (settings.AllowIgnoreFileExt && settings.SpecifiedFileNamesAndExtensions.Count > 0)
                 {
-                    if (AllowOnlyExt)
+                    string extension = Path.GetExtension(currentFileName);
+
+                    if (settings.SpecifiedFileNamesOrExtensionsMode == SpecifiedFileNamesAndExtensionsMode.ALLOW_ONLY)
                     {
-                        string ext = Path.GetExtension(trimmedPathWithFileName);
-                        if (option.AllowOnlyFileExtensions.Find(x => x.ExtensionName.Equals(ext,StringComparison.OrdinalIgnoreCase)) == null)
+                        if (settings.SpecifiedFileNamesAndExtensions.Find(x => 
+                                x.Equals(currentFileName, StringComparison.OrdinalIgnoreCase) ||
+                                x.Equals(extension, StringComparison.OrdinalIgnoreCase)
+                            ) == null)
                         {
                             NotTransFilesReports.Add(new NotTransferedFilesReport
                             {
                                 File = originPathWithFileName,
                                 Destiny = destinyPathWOFileName,
-                                Reason = $"File extension ignored ({ext})"
+                                Reason = $"File extension ignored ({extension})"
                             });
-                            LogManager.WriteLine($"Filename extension ignored. File not transfered:\"'{originPathWithFileName}\" as \"{destinyPathWithFileName}\"");
+
+                            HandleLogMessage($"Filename extension ignored. File not transfered:\"'{originPathWithFileName}\" as \"{destinyPathWithFileName}\"");
                             continue;
                         }
                     }
-                    else if (IgnoreExt)
+                    else if (settings.SpecifiedFileNamesOrExtensionsMode == SpecifiedFileNamesAndExtensionsMode.IGNORE)
                     {
-                        string ext = Path.GetExtension(trimmedPathWithFileName);
-                        if (option.IgnoredFileExtensions.Find(x => x.ExtensionName.Equals(ext,StringComparison.OrdinalIgnoreCase)) != null)
+                        if (settings.SpecifiedFileNamesAndExtensions.Find(x => 
+                                x.Equals(currentFileName, StringComparison.OrdinalIgnoreCase) ||
+                                x.Equals(extension, StringComparison.OrdinalIgnoreCase)
+                            ) != null)
                         {
                             NotTransFilesReports.Add(new NotTransferedFilesReport
                             {
                                 File = originPathWithFileName,
                                 Destiny = destinyPathWOFileName,
-                                Reason = $"File extension ignored ({ext})"
+                                Reason = $"File extension ignored ({extension})"
                             });
-                            LogManager.WriteLine($"Filename extension ignored. File not ransfered: \"{originPathWithFileName}\" as \"{destinyPathWithFileName}\"");
+
+                            HandleLogMessage($"Filename extension ignored. File not ransfered: \"{originPathWithFileName}\" as \"{destinyPathWithFileName}\"");
                             continue;
                         }
                     }
                 }
 
                 do
-                    TransferFile(option, originPathWithFileName, destinyPathWithFileName, destinyPathWOFileName);
+                    TransferFile(settings, originPathWithFileName, destinyPathWithFileName, destinyPathWOFileName);
                 while (this.RepeatFileExecution);
             }
 
             //-- DELETING ORIGIN DIRECTORIES
-            if (!option.KeepOriginFiles && !this.CancelExecution)
+            if (!settings.KeepOriginFiles && !this.CancelExecution)
             {
-                LogManager.WriteLine("Cleaning origin directories...");
+                HandleLogMessage("Cleaning origin directories...");
                 try
                 {
                     foreach (string entry in originDirectories.Reverse().ToList())
@@ -304,21 +333,20 @@ namespace BackupHelper
                 }
                 catch (Exception e)
                 {
-                    LogManager.WriteLine($"Error: {e} when deleting origin directories.");
-                    //LogManager.WriteLine($"Error: {e.ToString()} when deleting directory \"{entry}\"");
-                    //this.OptionsMenu.ShowErrorDialog($"Couldn't delete directory \"{entry}\": {e.Message}");
+                    HandleLogMessage($"Error: {e} when deleting origin directories.");
+                    //HandleLogMessage($"Error: {e.ToString()} when deleting directory \"{entry}\"");
                     throw;
                 }
             }
 
             //-- DELETING UNCOMMON DESTINY FILES AND DIRECTORIES
-            if (option.DeleteUncommonFiles && !option.CleanDestinyDirectory && !this.CancelExecution)
+            if (settings.DeleteUncommonFiles && !settings.CleanDestinyDirectory && !this.CancelExecution)
             {
                 try
                 {
                     foreach (string destinyFile in destinyFiles)
                     {
-                        string trimmedDestinyFile = destinyFile.Replace(option.DestinyPath, "");
+                        string trimmedDestinyFile = destinyFile.Replace(settings.DestinyPath, "");
                         if (trimmedFiles.Find(x => x.Equals(trimmedDestinyFile,StringComparison.OrdinalIgnoreCase)) == null)
                         {
                             if (File.Exists(destinyFile))
@@ -332,11 +360,11 @@ namespace BackupHelper
                             }
                         }
                     }
-                    if (option.MoveSubFolders)
+                    if (settings.MoveSubFolders)
                     {
                         foreach (string destinyDirectory in destinyDirectories.Reverse().ToList())
                         {
-                            string trimmedDestinyDirectory = destinyDirectory.Replace(option.DestinyPath, "");
+                            string trimmedDestinyDirectory = destinyDirectory.Replace(settings.DestinyPath, "");
                             if (trimmedDirectories.Find(x => x.Equals(trimmedDestinyDirectory,StringComparison.OrdinalIgnoreCase)) == null)
                             {
                                 if (Directory.Exists(destinyDirectory))
@@ -354,13 +382,13 @@ namespace BackupHelper
                 }
                 catch (Exception e)
                 {
-                    LogManager.WriteLine($"Error: {e.ToString()} when deleting uncommon destiny files and directories.");
+                    HandleLogMessage($"Error: {e} when deleting uncommon destiny files and directories.");
                     throw;
                 }
             }
         }
 
-        void TransferFile(Option option,string originPathWithFileName,string destinyPathWithFileName,
+        private void TransferFile(TransferSettings settings, string originPathWithFileName,string destinyPathWithFileName,
             string destinyPathWOFileName)
         {
             if (this.JumpFileExecution) this.JumpFileExecution = false;
@@ -370,7 +398,7 @@ namespace BackupHelper
             {
                 try
                 {
-                    if (option.KeepOriginFiles)
+                    if (settings.KeepOriginFiles)
                     {
                         File.Copy(originPathWithFileName, destinyPathWithFileName);
                     }
@@ -389,26 +417,27 @@ namespace BackupHelper
                         File = originPathWithFileName,
                         Destiny = destinyPathWOFileName
                     });
-                    LogManager.WriteLine($"Transfered file: \"{originPathWithFileName}\" to \"{destinyPathWOFileName}\"");
+                    HandleLogMessage($"Transfered file: \"{originPathWithFileName}\" to \"{destinyPathWOFileName}\"");
                 }
                 catch (Exception e)
                 {
-                    LogManager.WriteLine($"Error: {e.ToString()} when transfering \"{originPathWithFileName}\" to \"{destinyPathWOFileName}\"");
+                    HandleLogMessage($"Error: {e} when transfering \"{originPathWithFileName}\" to \"{destinyPathWOFileName}\"");
                     if (File.Exists(destinyPathWithFileName))
                     {
                         try
                         {
                             File.Delete(destinyPathWithFileName);
-                            LogManager.WriteLine($"File deleted for safety: \"{destinyPathWithFileName}\"");
+                            HandleLogMessage($"File deleted for safety: \"{destinyPathWithFileName}\"");
                         }
                         catch (Exception e1)
                         {
-                            LogManager.WriteLine($"Error: {e1.ToString()} when deleting \"{destinyPathWithFileName}\"");
+                            HandleLogMessage($"Error: {e1} when deleting \"{destinyPathWithFileName}\"");
                         }
                     }
 
-                    //throw new Exception($"An error has occurred when transfering the file: '{option.DestinyPath + destiny}'. {e.Message}");
-                    this.OptionsMenu.ShowErrorDialog($"An error has occurred when transfering the file \"{originPathWithFileName}\" to \"{destinyPathWOFileName}\": {e.Message}", true);
+                    //throw new Exception($"An error has occurred when transfering the file: '{settings.DestinyPath + destiny}'. {e.Message}");
+                    ManageErrorActions(HandleErrorDialogRepeatable($"An error has occurred when transfering the file \"{originPathWithFileName}\" to " +
+                        $"\"{destinyPathWOFileName}\": {e.Message}", e,originPathWithFileName,destinyPathWithFileName));
                     if (this.RepeatFileExecution) return;
 
                     NotTransFilesReports.Add(new NotTransferedFilesReport
@@ -421,24 +450,24 @@ namespace BackupHelper
             }
             else
             {
-                switch (option.TransferMethod.Id)
+                switch (settings.FileNameConflictMethod)
                 {
-                    case (int)TransferMethodType.TYPE_DO_NOT_MOVE:
+                    case FileNameConflictMethod.DO_NOT_MOVE:
                         HandleFilenameConflictDoNotReplaceFiles(originPathWithFileName, destinyPathWithFileName, destinyPathWOFileName);
                         break;
-                    case (int)TransferMethodType.TYPE_REPLACE_ALL:
+                    case FileNameConflictMethod.REPLACE_ALL:
                         HandleFilenameConflictReplaceAllFiles(originPathWithFileName, destinyPathWithFileName, destinyPathWOFileName);
                         break;
-                    case (int)TransferMethodType.TYPE_REPLACE_DIFFERENT:
+                    case FileNameConflictMethod.REPLACE_DIFFERENT:
                         HandleFilenameConflictReplaceUniqueFiles(originPathWithFileName, destinyPathWithFileName, destinyPathWOFileName);
                         break;
-                    case (int)TransferMethodType.TYPE_RENAME_DIFFERENT:
+                    case FileNameConflictMethod.RENAME_DIFFERENT:
                         HandleFilenameConflictRenameUniqueFiles(originPathWithFileName, destinyPathWithFileName, destinyPathWOFileName);
                         break;
                 }
 
                 //-- DELETING ORIGIN FILE
-                if (!option.KeepOriginFiles && !this.CancelExecution && !this.JumpFileExecution && !this.RepeatFileExecution)
+                if (!settings.KeepOriginFiles && !this.CancelExecution && !this.JumpFileExecution && !this.RepeatFileExecution)
                 {
                     try
                     {
@@ -455,13 +484,14 @@ namespace BackupHelper
                     }
                     catch (Exception e)
                     {
-                        LogManager.WriteLine($"Error: {e.ToString()} when deleting the source file \"{originPathWithFileName}\"");
+                        HandleLogMessage($"Error: {e} when deleting the source file \"{originPathWithFileName}\"");
                         //throw new Exception($"An error has occurred when deleting the source file '{entry}'. {e.Message}");
-                        this.OptionsMenu.ShowErrorDialog($"An error has occurred when deleting the source file \"{originPathWithFileName}\". {e.Message}", false);
+                        ManageErrorActions(HandleErrorDialogNonRepeatable($"An error has occurred when deleting the source file \"{originPathWithFileName}\". " +
+                            $"{e.Message}", e, originPathWithFileName,destinyPathWithFileName));
                     }
                 }
 
-                //if (this.CancelExecution) LogManager.WriteLine("Canceling operation...");
+                //if (this.CancelExecution) HandleLogMessage("Canceling operation...");
             }
         }
 
@@ -473,7 +503,7 @@ namespace BackupHelper
                 Destiny = destinyPathWOFileName,
                 Reason = "Repeated name"
             });
-            LogManager.WriteLine($"Conflicted filename. File not moved: \"{originPathWithFileName}\" as \"{destinyPathWithFileName}\"");
+            HandleLogMessage($"Conflicted filename. File not moved: \"{originPathWithFileName}\" as \"{destinyPathWithFileName}\"");
         }
 
         private void HandleFilenameConflictReplaceAllFiles(string originPathWithFileName, string destinyPathWithFileName, string destinyPathWOFileName)
@@ -491,7 +521,7 @@ namespace BackupHelper
             //        Destiny = destinyPath + destiny.Substring(0, destiny.LastIndexOf("\\")),
             //        Reason = "Error: " + e.Message
             //    });
-            //    LogManager.WriteLine($"Error: {e.ToString()} when creating a backup file (.bac) for '{destinyPath + destiny}'");
+            //    HandleLogMessage($"Error: {e.ToString()} when creating a backup file (.bac) for '{destinyPath + destiny}'");
             //    try
             //    {
             //        //if(File.Exists(destinyPath + destiny + ".bac"))
@@ -512,11 +542,12 @@ namespace BackupHelper
                     File = originPathWithFileName,
                     Destiny = destinyPathWOFileName
                 });
-                LogManager.WriteLine($"File replaced: \"{destinyPathWithFileName}\"");
+
+                HandleLogMessage($"File replaced: \"{destinyPathWithFileName}\"");
             }
             catch (Exception e)
             {
-                LogManager.WriteLine($"Error: {e.ToString()} when replacing \"{destinyPathWithFileName}\"");
+                HandleLogMessage($"Error: {e} when replacing \"{destinyPathWithFileName}\"");
                 //if (File.Exists(destinyPath + destiny + ".bac"))
                 //{
                     if (File.Exists(destinyPathWithFileName))
@@ -524,31 +555,32 @@ namespace BackupHelper
                         try
                         {
                             File.Delete(destinyPathWithFileName);
-                            LogManager.WriteLine($"File deleted for safety: \"{destinyPathWithFileName}\"");
+                            HandleLogMessage($"File deleted for safety: \"{destinyPathWithFileName}\"");
                         }
                         catch (Exception e1)
                         {
-                            LogManager.WriteLine($"Error: {e1.ToString()} when deleting \"{destinyPathWithFileName}\" as safety procedure");
+                            HandleLogMessage($"Error: {e1} when deleting \"{destinyPathWithFileName}\" as safety procedure");
                         }
                     }
 
                 //try
                 //{
                 //    File.Move(destinyPath + destiny + ".bac", destinyPath + destiny);
-                //    LogManager.WriteLine($"Original file restored: '{destinyPath + destiny}' from backup file");
+                //    HandleLogMessage($"Original file restored: '{destinyPath + destiny}' from backup file");
                 //}
                 //catch (Exception e1)
                 //{
-                //    LogManager.WriteLine($"Error: {e1.ToString()} when restoring file '{destinyPath + destiny}' from backup");
+                //    HandleLogMessage($"Error: {e1.ToString()} when restoring file '{destinyPath + destiny}' from backup");
                 //}
                 //}
                 //else
                 //{
-                //    LogManager.WriteLine($"Backup file could not be found '{destinyPath + destiny}.bac'. Couldn't restore original file");
+                //    HandleLogMessage($"Backup file could not be found '{destinyPath + destiny}.bac'. Couldn't restore original file");
                 //}
                 //throw new Exception($"An error has occurred when when replacing \"{destinyPath + destiny}\": {e.Message}");
-                
-                this.OptionsMenu.ShowErrorDialog($"An error has occurred when when replacing \"{destinyPathWithFileName}\": {e.Message}",true);
+
+                ManageErrorActions(HandleErrorDialogRepeatable($"An error has occurred when when replacing \"{destinyPathWithFileName}\": {e.Message}",e,
+                    originPathWithFileName,destinyPathWithFileName));
                 if (this.RepeatFileExecution) return;
                 
                 NotTransFilesReports.Add(new NotTransferedFilesReport
@@ -564,7 +596,7 @@ namespace BackupHelper
             //}
             //catch (Exception e)
             //{
-            //    LogManager.WriteLine($"Error: {e.ToString()} when deleting the backup file '{destinyPath + destiny}.bac'");
+            //    HandleLogMessage($"Error: {e.ToString()} when deleting the backup file '{destinyPath + destiny}.bac'");
             //    throw new Exception($"An error has occurred when deleting the backup file (.bac) for '{destinyPath + destiny}'. {e.Message} Aborting.");
             //}
         }
@@ -572,13 +604,14 @@ namespace BackupHelper
         private void HandleFilenameConflictReplaceUniqueFiles(string originPathWithFileName, string destinyPathWithFileName, string destinyPathWOFileName)
         {
             bool filesAreTheSame = false;
+
             try
             {
                 filesAreTheSame = FileEquals(originPathWithFileName, destinyPathWithFileName);
             }
             catch (Exception)
             {
-                //this.OptionsMenu.ShowErrorDialog($"An error occurred when comparing files: \"{originPathWithFileName}\" and \"{destinyPathWithFileName}\". {e.Message}",true);
+                //HandleErrorDialogRepeatable($"An error occurred when comparing files: \"{originPathWithFileName}\" and \"{destinyPathWithFileName}\". {e.Message}",true);
                 return;
             }
 
@@ -597,7 +630,7 @@ namespace BackupHelper
                 //        Destiny = destinyPath + destiny.Substring(0, destiny.LastIndexOf("\\")),
                 //        Reason = "Error: " + e.Message
                 //    });
-                //    LogManager.WriteLine($"Error: {e.ToString()} when creating backup file (.bac) for '{destinyPath + destiny}'");
+                //    HandleLogMessage($"Error: {e.ToString()} when creating backup file (.bac) for '{destinyPath + destiny}'");
                 //    try
                 //    {
                 //        //if(File.Exists(destinyPath + destiny + ".bac"))
@@ -618,11 +651,12 @@ namespace BackupHelper
                         File = originPathWithFileName,
                         Destiny = destinyPathWOFileName
                     });
-                    LogManager.WriteLine($"Replaced file: \"{destinyPathWithFileName}\"");
+
+                    HandleLogMessage($"Replaced file: \"{destinyPathWithFileName}\"");
                 }
                 catch (Exception e)
                 {
-                    LogManager.WriteLine($"Error: {e.ToString()} when replacing \"{destinyPathWithFileName}\"");
+                    HandleLogMessage($"Error: {e} when replacing \"{destinyPathWithFileName}\"");
                     //if (File.Exists(destinyPath + destiny + ".bac"))
                     //{
                     if (File.Exists(destinyPathWithFileName))
@@ -630,30 +664,31 @@ namespace BackupHelper
                         try
                         {
                             File.Delete(destinyPathWithFileName);
-                            LogManager.WriteLine($"File deleted for safety: \"{destinyPathWithFileName}\"");
+                            HandleLogMessage($"File deleted for safety: \"{destinyPathWithFileName}\"");
                         }
                         catch (Exception e1)
                         {
-                            LogManager.WriteLine($"Error: {e1.ToString()} when deleting \"{destinyPathWithFileName}\" as safety procedure");
+                            HandleLogMessage($"Error: {e1} when deleting \"{destinyPathWithFileName}\" as safety procedure");
                         }
                     }
                     //try
                     //{
                     //    File.Move(destinyPath + destiny + ".bac", destinyPath + destiny);
-                    //    LogManager.WriteLine($"Original file restored: '{destinyPath + destiny}' from backup file");
+                    //    HandleLogMessage($"Original file restored: '{destinyPath + destiny}' from backup file");
                     //}
                     //catch (Exception e1)
                     //{
-                    //    LogManager.WriteLine($"Error: {e1.ToString()} when restoring file '{destinyPath + destiny}' from backup");
+                    //    HandleLogMessage($"Error: {e1.ToString()} when restoring file '{destinyPath + destiny}' from backup");
                     //}
                     //}
                     //else
                     //{
-                    //    LogManager.WriteLine($"Backup file could not be found '{destinyPath + destiny}.bac'. Couldn't restore original file");
+                    //    HandleLogMessage($"Backup file could not be found '{destinyPath + destiny}.bac'. Couldn't restore original file");
                     //}
 
                     //throw new Exception($"An error has occurred when replacing the file: \"{destinyPath + destiny}\": {e.Message}");
-                    this.OptionsMenu.ShowErrorDialog($"An error has occurred when replacing the file: \"{destinyPathWithFileName}\": {e.Message}",true);
+                    ManageErrorActions(HandleErrorDialogRepeatable($"An error has occurred when replacing the file: \"{destinyPathWithFileName}\": {e.Message}",e,
+                        originPathWithFileName,destinyPathWithFileName));
                     if (this.RepeatFileExecution) return;
 
                     NotTransFilesReports.Add(new NotTransferedFilesReport
@@ -669,7 +704,7 @@ namespace BackupHelper
                 //}
                 //catch (Exception e)
                 //{
-                //    LogManager.WriteLine($"Error: {e.ToString()} when deleting the backup file '{destinyPath + destiny}.bac'");
+                //    HandleLogMessage($"Error: {e.ToString()} when deleting the backup file '{destinyPath + destiny}.bac'");
                 //    throw new Exception($"An error has occurred when deleting the backup file (.bac) for '{destinyPath + destiny}'. {e.Message} Aborting.");
                 //}
             }
@@ -681,69 +716,75 @@ namespace BackupHelper
                     Destiny = destinyPathWOFileName,
                     Reason = "File already exists"
                 });
-                LogManager.WriteLine($"File not replaced: \"{originPathWithFileName}\" and \"{destinyPathWithFileName}\" are the same");
+
+                HandleLogMessage($"File not replaced: \"{originPathWithFileName}\" and \"{destinyPathWithFileName}\" are the same");
             }
             //}
             //catch (Exception e)
             //{
-            //    this.OptionsMenu.ShowErrorDialog(e.Message);
+            //    HandleErrorDialogRepeatable(e.Message);
             //}
         }
 
         private void HandleFilenameConflictRenameUniqueFiles(string originPathWithFileName, string destinyPathWithFileName, string destinyPathWOFileName)
         {
-            bool filesAreTheSame = false;
+            bool filesAreTheSame;
+
             try
             {
                 filesAreTheSame = FileEquals(originPathWithFileName, destinyPathWithFileName);
             }
             catch (Exception)
             {
-                //this.OptionsMenu.ShowErrorDialog($"An error occurred when comparing files: \"{originPathWithFileName}\" and \"{destinyPathWithFileName}\". {e.Message}",true);
+                //HandleErrorDialogRepeatable($"An error occurred when comparing files: \"{originPathWithFileName}\" and \"{destinyPathWithFileName}\". {e.Message}",true);
                 return;
             }
 
             if (!filesAreTheSame)
             {
-                string filenameExtension = destinyPathWithFileName.Substring(destinyPathWithFileName.LastIndexOf("."));
+                string filenameExtension = Path.GetExtension(destinyPathWithFileName);
 
                 bool i = true;
                 int repetitions = 1;
                 while (i)
                 {
                     //try
-                    string destinyPathWithNewFileName = destinyPathWithFileName.Substring(0, destinyPathWithFileName.LastIndexOf(".")) + " (" + repetitions + ")" + filenameExtension;
+                    string destinyPathWithNewFileName = $"{destinyPathWOFileName}\\{Path.GetFileNameWithoutExtension(destinyPathWithFileName)} ({repetitions}){filenameExtension}";
+
                     if (!File.Exists(destinyPathWithNewFileName))
                     {
                         try
                         {
+                            throw new Exception();
                             File.Copy(originPathWithFileName, destinyPathWithNewFileName);
                             RenamedFilesReports.Add(new RenamedFilesReport
                             {
                                 File = originPathWithFileName,
                                 Destiny = destinyPathWithNewFileName
                             });
-                            LogManager.WriteLine($"File moved and renamed: \"{originPathWithFileName}\" to \"{destinyPathWithNewFileName}\"");
+
+                            HandleLogMessage($"File moved and renamed: \"{originPathWithFileName}\" to \"{destinyPathWithNewFileName}\"");
                             i = false;
                         }
                         catch (Exception e)
                         {
-                            LogManager.WriteLine($"Error: {e.ToString()} when moving and renaming \"{originPathWithFileName}\" to \"{destinyPathWithNewFileName}\"");
+                            HandleLogMessage($"Error: {e} when moving and renaming \"{originPathWithFileName}\" to \"{destinyPathWithNewFileName}\"");
                             if (File.Exists(destinyPathWithNewFileName))
                             {
                                 try
                                 {
                                     File.Delete(destinyPathWithNewFileName);
-                                    LogManager.WriteLine($"File deleted for safety: \"{destinyPathWithNewFileName}\"");
+                                    HandleLogMessage($"File deleted for safety: \"{destinyPathWithNewFileName}\"");
                                 }
                                 catch (Exception e1)
                                 {
-                                    LogManager.WriteLine($"Error: {e1.ToString()} when deleting \"{destinyPathWithNewFileName}\"as safety procedure");
+                                    HandleLogMessage($"Error: {e1} when deleting \"{destinyPathWithNewFileName}\"as safety procedure");
                                 }
                             }
 
                             //throw new Exception($"An error has occurred when moving and renaming the file: '{entry}' to '{newFileName}'. {e.Message}");
-                            this.OptionsMenu.ShowErrorDialog($"An error has occurred when moving and renaming the file: \"{originPathWithFileName}\" to \"{destinyPathWithNewFileName}\". {e.Message}",true);
+                            ManageErrorActions(HandleErrorDialogRepeatable($"An error has occurred when moving and renaming the file: \"{originPathWithFileName}\" " +
+                                $"to \"{destinyPathWithNewFileName}\". {e.Message}",e,originPathWithFileName,destinyPathWithFileName));
                             if (this.RepeatFileExecution) return;
 
                             NotTransFilesReports.Add(new NotTransferedFilesReport
@@ -752,6 +793,8 @@ namespace BackupHelper
                                 Destiny = destinyPathWOFileName,
                                 Reason = "Error: " + e.Message
                             });
+
+                            break;
                         }
                     }
                     //catch (IOException)
@@ -763,7 +806,7 @@ namespace BackupHelper
                         }
                         catch (Exception)
                         {
-                            //this.OptionsMenu.ShowErrorDialog($"An error occurred when comparing files: \"{originPathWithFileName}\" and \"{destinyPathWithNewFileName}\". {e.Message}",true);
+                            //HandleErrorDialogRepeatable($"An error occurred when comparing files: \"{originPathWithFileName}\" and \"{destinyPathWithNewFileName}\". {e.Message}",true);
                             return;
                         }
                         if (!filesAreTheSame)
@@ -778,7 +821,8 @@ namespace BackupHelper
                                 Destiny = destinyPathWOFileName,
                                 Reason = "File already exists as \"" + destinyPathWithNewFileName.Substring(destinyPathWithNewFileName.LastIndexOf("\\") + 1) + "\""
                             });
-                            LogManager.WriteLine($"File not moved: {originPathWithFileName} and \"{destinyPathWithNewFileName}\" are the same");
+
+                            HandleLogMessage($"File not moved: {originPathWithFileName} and \"{destinyPathWithNewFileName}\" are the same");
                             i = false;
                         }
                     }
@@ -792,7 +836,7 @@ namespace BackupHelper
                     Destiny = destinyPathWOFileName,
                     Reason = "File already exists as \"" + destinyPathWithFileName.Substring(destinyPathWithFileName.LastIndexOf("\\") + 1) + "\""
                 });
-                LogManager.WriteLine($"File not moved: \"{originPathWithFileName}\" and \"{destinyPathWithFileName}\" are the same");
+                HandleLogMessage($"File not moved: \"{originPathWithFileName}\" and \"{destinyPathWithFileName}\" are the same");
             }
         }
 
@@ -820,8 +864,9 @@ namespace BackupHelper
             }
             catch (Exception e)
             {
-                LogManager.WriteLine($"Error: {e.ToString()} when comparing files: \"{file1}\" and \"{file2}\"");
-                this.OptionsMenu.ShowErrorDialog($"An error has occurred when comparing files: \"{file1}\" and \"{file2}\". {e.Message}",true);
+                HandleLogMessage($"Error: {e} when comparing files: \"{file1}\" and \"{file2}\"");
+                ManageErrorActions(HandleErrorDialogRepeatable($"An error has occurred when comparing files: \"{file1}\" and \"{file2}\". {e.Message}", e, 
+                    file1, file2));
                 if (this.RepeatFileExecution) throw;
 
                 NotTransFilesReports.Add(new NotTransferedFilesReport
@@ -830,26 +875,106 @@ namespace BackupHelper
                     Destiny = file2.Substring(0, file2.LastIndexOf("\\")),
                     Reason = "Error: "+ e.Message
                 });
+
                 throw;// new Exception($"An error occurred when comparing files: \"{file1}\" and \"{file2}\". {e.Message}");
-                //this.OptionsMenu.ShowErrorDialog(e.Message);
+                //HandleErrorDialogRepeatable(e.Message);
             }
         }
 
-        public int FilesTotal(List<Option> options)
+        public int FilesTotal(List<TransferSettings> settings)
         {
             int fileCount = 1;
             string[] files;
 
-            foreach (Option o in options)
+            foreach (TransferSettings s in settings)
             {
-                if (o.MoveSubFolders == true)
-                    files = Directory.GetFiles(o.SourcePath, "*", SearchOption.AllDirectories);
+                if (s.MoveSubFolders == true)
+                    files = Directory.GetFiles(s.SourcePath, "*", SearchOption.AllDirectories);
                 else
-                    files = Directory.GetFiles(o.SourcePath, "*", SearchOption.TopDirectoryOnly);
+                    files = Directory.GetFiles(s.SourcePath, "*", SearchOption.TopDirectoryOnly);
 
                 fileCount += files.Length;
             }
             return fileCount;
         }
+
+        //-- #### OVERRIDE METHODS ####
+        //-- Implement what to do with the error message, exception, and the related filenames when a non fatal error ocurred.
+
+        //-- ...and return an action when the particular file transfer can be repeated...
+        public virtual FileTransferErrorActionRepeatable HandleErrorDialogRepeatable(string errorMessage, Exception e, string originFile, string destinyFile)
+        {
+            return FileTransferErrorActionRepeatable.JUMP;
+        }
+
+        //-- ...and when the particular file transfer can't be repeated...
+        public virtual FileTransferErrorActionNonRepeatable HandleErrorDialogNonRepeatable(string errorMessage, Exception e, string originFile, string destinyFile)
+        {
+            return FileTransferErrorActionNonRepeatable.JUMP;
+        }
+
+        //-- Choose what to do with log messages (what happens during the execution)
+        public virtual void HandleLogMessage(string logMessage)
+        {
+            Console.WriteLine($"[{DateTime.Now.ToLongTimeString()}]: {logMessage}");
+        }
+
+        //-- Choose what to do the names of files being executed
+        public virtual void HandleCurrentFileExecution(string trimmedPathWithFileName)
+        {
+            Console.WriteLine($"Executing: {trimmedPathWithFileName.Substring(trimmedPathWithFileName.LastIndexOf("\\") + 1)}");
+        }
+
+        private void ManageErrorActions(object fileTransferErrorAction)
+        {
+            if (fileTransferErrorAction.GetType().Equals(typeof(FileTransferErrorActionRepeatable)))
+            {
+                switch ((FileTransferErrorActionRepeatable)fileTransferErrorAction)
+                {
+                    case FileTransferErrorActionRepeatable.CANCEL:
+                        this.CancelExecution = true;
+                        this.RepeatFileExecution = false;
+                        HandleLogMessage("Canceling transfer");
+                        break;
+                    case FileTransferErrorActionRepeatable.JUMP:
+                        this.JumpFileExecution = true;
+                        this.RepeatFileExecution = false;
+                        HandleLogMessage("Jumping to the next file");
+                        break;
+                    case FileTransferErrorActionRepeatable.REPEAT:
+                        RepeatFileExecution = true;
+                        HandleLogMessage("Repeating file execution");
+                        break;
+                }
+            }
+            else if (fileTransferErrorAction.GetType().Equals(typeof(FileTransferErrorActionNonRepeatable)))
+            {
+                switch ((FileTransferErrorActionRepeatable)fileTransferErrorAction)
+                {
+                    case FileTransferErrorActionRepeatable.CANCEL:
+                        this.CancelExecution = true;
+                        this.RepeatFileExecution = false;
+                        HandleLogMessage("Canceling transfer");
+                        break;
+                    case FileTransferErrorActionRepeatable.JUMP:
+                        this.JumpFileExecution = true;
+                        this.RepeatFileExecution = false;
+                        HandleLogMessage("Jumping to the next file");
+                        break;
+                }
+            }
+        }
+    }
+
+    public enum FileTransferErrorActionRepeatable
+    {
+        JUMP, //-- Ignore current file and jump to next
+        CANCEL, //-- Cancel execution for the instance
+        REPEAT //-- Try to transfer current file again
+    }
+
+    public enum FileTransferErrorActionNonRepeatable
+    {
+        JUMP, CANCEL
     }
 }

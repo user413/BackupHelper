@@ -1,53 +1,120 @@
 ﻿using BackupHelper.model;
 using System;
+using System.IO;
 using System.Windows.Forms;
 
 namespace BackupHelper
 {
     public partial class FormEditProfile : Form
     {
-        readonly Profile Profile;
-        readonly FormProfileMenu ProfileMenu;
-
-        public FormEditProfile(FormProfileMenu menu, Profile profile)
+        private enum FormEditProfileAction
         {
-            this.ProfileMenu = menu;
-            this.Profile = profile;
+            ADD, EDIT
+        }
+
+        private readonly Profile Profile;
+        private readonly FormProfileMenu ProfileMenu;
+        private readonly FormEditProfileAction Action = FormEditProfileAction.EDIT;
+
+        public FormEditProfile(FormProfileMenu menu, Profile profile = null)
+        {
             InitializeComponent();
-            textBoxProfileName.Text = profile.Name;
             textBoxProfileName.AcceptsReturn = false;
             this.KeyPreview = true;
+            this.ProfileMenu = menu;
+
+            if (profile == null)
+            {
+                Action = FormEditProfileAction.ADD;
+                this.Text = "Add profile";
+            }
+            else
+            {
+                this.Profile = profile;
+                textBoxProfileName.Text = profile.Name;
+            }
         }
 
-        private void ButtonSaveProfile_Click(object sender, EventArgs e)
+        private void ButtonSaveProfile_Click(object sender, EventArgs args)
         {
-            EditProfileName();
-        }
-        private void TextBoxProfileName_KeyDown(object o,KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-                EditProfileName();
-            else if (e.KeyCode == Keys.Escape)
-                this.Close();
+            SaveProfile();
         }
 
-        private void EditProfileName()
+        private void SaveProfile()
         {
+            if (textBoxProfileName.Text == "")
+            {
+                MessageBox.Show("Invalid name.");
+                return;
+            }
+
+            if (TextContainsInvalidCharacters(textBoxProfileName.Text))
+            {
+                MessageBox.Show($"Name contains invalid characters.");
+                return;
+            }
+
+            if (ProfileMenu.Profiles.Find(x => x.Name == textBoxProfileName.Text) != null)
+            {
+                MessageBox.Show("Name already exists.");
+                return;
+            }
+
             try
             {
-                if (textBoxProfileName.Text == "")
-                {
-                    MessageBox.Show("Invalid name.");
-                    return;
-                }
-                this.Profile.Name = textBoxProfileName.Text;
-                this.ProfileMenu.ChangeProfileName(Profile);
-                this.Close();
+                if (Action == FormEditProfileAction.EDIT)
+                    EditProfileName();
+                else
+                    AddProfile();
+
+                Close();
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
             }
+        }
+
+        private void AddProfile()
+        {
+            Profile profile = new Profile
+            {
+                Name = textBoxProfileName.Text,
+                TimeCreated = DateTime.Now, //yyyy-MM-dd HH:mm:ss,
+                LastTimeModified = DateTime.MinValue,
+                LastTimeExecuted = DateTime.MinValue
+            };
+
+            profile.ListViewIndex = ProfileMenu.listViewProfile.Items.Count;
+            DBAccess.AddProfile(profile);
+            ProfileMenu.Profiles.Add(profile);
+            ListViewItem item = new ListViewItem();
+            ProfileMenu.EditListViewItem(profile, item);
+            ProfileMenu.listViewProfile.Items.Add(item);
+            ProfileMenu.ResizeForm();
+        }
+
+        private void EditProfileName()
+        {
+            this.Profile.Name = textBoxProfileName.Text;
+            DBAccess.UpdateProfile(Profile);
+            ProfileMenu.EditListViewItem(Profile);
+        }
+
+        private void TextBoxProfileName_KeyDown(object o, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+                SaveProfile();
+            else if (e.KeyCode == Keys.Escape)
+                this.Close();
+        }
+
+        private bool TextContainsInvalidCharacters(string text)
+        {
+            foreach (char s in Path.GetInvalidFileNameChars())
+                if (text.Contains(s.ToString())) return true;
+
+            return false;
         }
     }
 }

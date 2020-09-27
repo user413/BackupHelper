@@ -1,4 +1,4 @@
-﻿using BackupHelper.model;
+﻿using FileControlUtility;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -16,19 +16,19 @@ namespace BackupHelper
         private readonly List<ReplacedFilesReport> ReplacedFilesReports;
         private readonly List<RemovedFilesAndDirectoriesReport> RemovedFilesAndDirectoriesReports;
 
-        public FormReport(FormOptionsMenu menu, List<TransferedFilesReport> transfered,
-            List<NotTransferedFilesReport> notTransfered, List<RenamedFilesReport> renamed,
-            List<CreatedDirectoriesReport> createdDirectories, List<ReplacedFilesReport> replaced,
-            List<RemovedFilesAndDirectoriesReport> removed)
+        public FormReport(FormOptionsMenu menu, List<TransferedFilesReport> transferedFiles,
+            List<NotTransferedFilesReport> notTransferedFiles, List<RenamedFilesReport> renamedFiles,
+            List<CreatedDirectoriesReport> createdDirectories, List<ReplacedFilesReport> replacedFiles,
+            List<RemovedFilesAndDirectoriesReport> removedFilesAndDirectories)
         {
             InitializeComponent();
             this.OptionsMenu = menu;
-            this.TransferedFilesReports = transfered;
-            this.NotTransferedFilesReports = notTransfered;
-            this.RenamedFilesReports = renamed;
+            this.TransferedFilesReports = transferedFiles;
+            this.NotTransferedFilesReports = notTransferedFiles;
+            this.RenamedFilesReports = renamedFiles;
             this.CreatedDirectoriesReports = createdDirectories;
-            this.ReplacedFilesReports = replaced;
-            this.RemovedFilesAndDirectoriesReports = removed;
+            this.ReplacedFilesReports = replacedFiles;
+            this.RemovedFilesAndDirectoriesReports = removedFilesAndDirectories;
 
             foreach (TransferedFilesReport report in TransferedFilesReports)
             {
@@ -68,17 +68,17 @@ namespace BackupHelper
                 listViewRemovedFilesAndDirectories.Items.Add(item);
             }
 
-            if (transfered.Count != 0)
+            if (transferedFiles.Count != 0)
                 tabControlReport.SelectedTab = tabPageTransfered;
-            else if (notTransfered.Count != 0)
+            else if (notTransferedFiles.Count != 0)
                 tabControlReport.SelectedTab = tabPageNotTransfered;
-            else if (replaced.Count != 0)
+            else if (replacedFiles.Count != 0)
                 tabControlReport.SelectedTab = tabPageReplacedFiles;
-            else if (renamed.Count != 0)
+            else if (renamedFiles.Count != 0)
                 tabControlReport.SelectedTab = tabPageRenamedFiles;
             else if (createdDirectories.Count != 0)
                 tabControlReport.SelectedTab = tabPageCreatedDirectories;
-            else if (removed.Count != 0)
+            else if (removedFilesAndDirectories.Count != 0)
                 tabControlReport.SelectedTab = tabPageRemovedFilesAndDirectories;
         }
 

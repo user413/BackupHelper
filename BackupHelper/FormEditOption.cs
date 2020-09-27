@@ -1,60 +1,83 @@
 ﻿using BackupHelper.model;
+using FileControlUtility;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 namespace BackupHelper
 {
+    public enum FormAction
+    {
+        EDIT, CREATE
+    }
+
     public partial class FormEditOption : Form
     {
         private readonly FormOptionsMenu OptionsMenu;
         public Option Option;
-        private readonly Option OptionClone;
+        private readonly FormAction FormAction = FormAction.CREATE;
 
-        public FormEditOption(FormOptionsMenu menu, Option opt)
+        public FormEditOption(FormOptionsMenu optionsMenu, Option option = null)
         {
             InitializeComponent();
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormEditOption_KeyDown);
-            this.KeyPreview = true;
-            this.OptionsMenu = menu;
-            this.Option = opt;
 
+            OptionsMenu = optionsMenu;
+
+            if (option != null)
+            {
+                FormAction = FormAction.EDIT;
+                this.Option = option;
+                FillCamps(option);
+            }
+            else
+            {
+                this.Text = "Add option";
+
+                FillCamps(new Option {
+                    SourcePath = "C:\\origin...",
+                    DestinyPath = "C:\\destiny...",
+                    FileNameConflictMethod = FileNameConflictMethod.DO_NOT_MOVE,
+                    MoveSubFolders = true,
+                    KeepOriginFiles = true,
+                    CleanDestinyDirectory = false,
+                    AllowIgnoreFileExt = false,
+                    DeleteUncommonFiles = false,
+                    SpecifiedFileNamesAndExtensions = new List<string>()
+                });
+            }
+
+            this.KeyDown += new KeyEventHandler(this.FormEditOption_KeyDown);
+            this.KeyPreview = true;
+        }
+
+        private void FillCamps(Option option)
+        {
             try
             {
-                this.OptionClone = (Option)opt.Clone();
+                comboBoxMethod.Items.Insert((int)FileNameConflictMethod.DO_NOT_MOVE, option.GetTransferMethodDescription(FileNameConflictMethod.DO_NOT_MOVE));
+                comboBoxMethod.Items.Insert((int)FileNameConflictMethod.REPLACE_ALL, option.GetTransferMethodDescription(FileNameConflictMethod.REPLACE_ALL));
+                comboBoxMethod.Items.Insert((int)FileNameConflictMethod.REPLACE_DIFFERENT, option.GetTransferMethodDescription(FileNameConflictMethod.REPLACE_DIFFERENT));
+                comboBoxMethod.Items.Insert((int)FileNameConflictMethod.RENAME_DIFFERENT, option.GetTransferMethodDescription(FileNameConflictMethod.RENAME_DIFFERENT));
 
-                TransferMethodAccess tma = new TransferMethodAccess();
-                foreach (TransferMethod tm in tma.ListMethods())
-                    comboBoxMethod.Items.Insert(tm.Id - 1, tm.MethodName);
+                comboBoxMethod.SelectedIndex = (int)option.FileNameConflictMethod;
 
-                textBoxSourcePath.Text = opt.SourcePath;
-                textBoxDestinyPath.Text = opt.DestinyPath;
-                comboBoxMethod.SelectedIndex = opt.TransferMethod.Id - 1;
-                checkBoxMoveSubfolders.Checked = opt.MoveSubFolders;
-                checkBoxKeepOriginFiles.Checked = opt.KeepOriginFiles;
-                checkBoxCleanDestinyDirectory.Checked = opt.CleanDestinyDirectory;
-                checkBoxDeleteUncommonFiles.Checked = opt.DeleteUncommonFiles;
-                checkBoxManageFileExtensions.Checked = opt.AllowIgnoreFileExt;
+                textBoxSourcePath.Text = option.SourcePath;
+                textBoxDestinyPath.Text = option.DestinyPath;
+                checkBoxMoveSubfolders.Checked = option.MoveSubFolders;
+                checkBoxKeepOriginFiles.Checked = option.KeepOriginFiles;
+                checkBoxCleanDestinyDirectory.Checked = option.CleanDestinyDirectory;
+                checkBoxDeleteUncommonFiles.Checked = option.DeleteUncommonFiles;
+                checkBoxManageFileNamesAndExtensions.Checked = option.AllowIgnoreFileExt;
 
-                if (opt.IgnoredFileExtensions.Count > 0)
+                if (option.SpecifiedFileNamesOrExtensionsMode == SpecifiedFileNamesAndExtensionsMode.IGNORE)
+                    radioButtonIgnore.Checked = true;
+
+                foreach (string txt in option.SpecifiedFileNamesAndExtensions)
                 {
-                    radioButtonIgnore.Checked = true; //-- WILL ACTIVATE THE CHECKED CHANGED METHOD
-                    //foreach (FileExtension ext in opt.IgnoredFileExtensions)
-                    //{
-                    //    ListViewItem item = new ListViewItem(ext.ExtensionName);
-                    //    item.Tag = ext.Id;
-                    //    listViewExtensions.Items.Add(item);
-                    //}
-                }
-                else
-                {
-                    foreach (FileExtension ext in opt.AllowOnlyFileExtensions)
-                    {
-                        ListViewItem item = new ListViewItem(ext.ExtensionName);
-                        item.Tag = ext.Id;
-                        listViewExtensions.Items.Add(item);
-                    }
+                    ListViewItem item = new ListViewItem(txt);
+                    listViewFileNamesAndExtensions.Items.Add(item);
                 }
             }
             catch (Exception e)
@@ -67,39 +90,123 @@ namespace BackupHelper
         private void ButtonDoneEdit_Click(object sender, EventArgs e)
         {
             SubmitChanges();
+
+            if (DialogResult != DialogResult.None)
+                Close();
         }
 
         private void SubmitChanges()
         {
             try
             {
-                TransferMethodAccess tma = new TransferMethodAccess();
-                this.Option.SourcePath = textBoxSourcePath.Text;
-                this.Option.DestinyPath = textBoxDestinyPath.Text;
-                this.Option.TransferMethod = tma.GetTransferMethod(int.Parse(comboBoxMethod.SelectedIndex.ToString()) + 1);
-                this.Option.MoveSubFolders = checkBoxMoveSubfolders.Checked;
-                this.Option.KeepOriginFiles = checkBoxKeepOriginFiles.Checked;
-                this.Option.CleanDestinyDirectory = checkBoxCleanDestinyDirectory.Checked;
-                this.Option.DeleteUncommonFiles = checkBoxDeleteUncommonFiles.Checked;
-                this.Option.AllowIgnoreFileExt = checkBoxManageFileExtensions.Checked;
-                if (radioButtonAllowOnly.Checked) this.Option.IgnoredFileExtensions.Clear();
-                else this.Option.AllowOnlyFileExtensions.Clear();
-                if (OptionsMenu.Options.Find(x => x.Id == Option.Id) != null)
-                
+                Option editedOption = new Option();
+                SaveCampsToObject(editedOption);
+                if (!InputsAreValid(editedOption)) return;
+
+                if (FormAction == FormAction.CREATE)
                 {
-                    if (!OptionsAreEqual(this.Option, OptionClone))
-                        OptionsMenu.EditOption(Option);
+                    editedOption.Profile = OptionsMenu.Profile;
+                    editedOption.ListViewIndex = OptionsMenu.listViewOptions.Items.Count;
+                    DBAccess.AddOption(editedOption);
+                    OptionsMenu.Options.Add(editedOption);
+                    Program.UpdateLastTimeModified(editedOption.Profile);
+                    ListViewItem item = new ListViewItem();
+                    OptionsMenu.EditListViewItem(editedOption,item);
+                    OptionsMenu.listViewOptions.Items.Add(item);
+                    OptionsMenu.ResizeForm();
                 }
                 else
                 {
-                    OptionsMenu.AddOption(Option);
+                    if (
+                        !(
+                            Option.SourcePath == editedOption.SourcePath &&
+                            Option.DestinyPath == editedOption.DestinyPath &&
+                            Option.FileNameConflictMethod == editedOption.FileNameConflictMethod &&
+                            Option.SpecifiedFileNamesOrExtensionsMode == editedOption.SpecifiedFileNamesOrExtensionsMode &&
+                            Option.MoveSubFolders == editedOption.MoveSubFolders &&
+                            Option.KeepOriginFiles == editedOption.KeepOriginFiles &&
+                            Option.CleanDestinyDirectory == editedOption.CleanDestinyDirectory &&
+                            Option.DeleteUncommonFiles == editedOption.DeleteUncommonFiles &&
+                            Option.AllowIgnoreFileExt == editedOption.AllowIgnoreFileExt &&
+                            ExtensionsAreTheSame(Option.SpecifiedFileNamesAndExtensions, editedOption.SpecifiedFileNamesAndExtensions)
+                        )
+                    )
+                    {
+                        Option.SourcePath = editedOption.SourcePath;
+                        Option.DestinyPath = editedOption.DestinyPath;
+                        Option.FileNameConflictMethod = editedOption.FileNameConflictMethod;
+                        Option.SpecifiedFileNamesOrExtensionsMode = editedOption.SpecifiedFileNamesOrExtensionsMode;
+                        Option.MoveSubFolders = editedOption.MoveSubFolders;
+                        Option.KeepOriginFiles = editedOption.KeepOriginFiles;
+                        Option.CleanDestinyDirectory = editedOption.CleanDestinyDirectory;
+                        Option.DeleteUncommonFiles = editedOption.DeleteUncommonFiles;
+                        Option.AllowIgnoreFileExt = editedOption.AllowIgnoreFileExt;
+                        Option.SpecifiedFileNamesAndExtensions = editedOption.SpecifiedFileNamesAndExtensions;
+
+                        DBAccess.UpdateOption(Option);
+                        Program.UpdateLastTimeModified(Option.Profile);
+                        OptionsMenu.EditListViewItem(Option);
+                    }
                 }
-                this.Close();
+                
+                DialogResult = DialogResult.Cancel;
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
             }
+        }
+
+        private bool InputsAreValid(Option editedOption)
+        {
+            if(editedOption.SourcePath == "")
+            {
+                MessageBox.Show("Invalid source path.");
+                return false;
+            }
+
+            if (editedOption.DestinyPath == "")
+            {
+                MessageBox.Show("Invalid destiny path.");
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ExtensionsAreTheSame(List<string> fileExtensions1, List<string> fileExtensions2)
+        {
+            if (fileExtensions1.Count != fileExtensions2.Count) return false;
+
+            foreach(string extension in fileExtensions1)
+                if (!fileExtensions2.Contains(extension)) return false;
+
+            return true;
+        }
+
+        private void SaveCampsToObject(Option editedOption)
+        {
+            editedOption.SourcePath = textBoxSourcePath.Text;
+            editedOption.DestinyPath = textBoxDestinyPath.Text;
+            editedOption.FileNameConflictMethod = (FileNameConflictMethod)comboBoxMethod.SelectedIndex;
+            editedOption.SpecifiedFileNamesOrExtensionsMode = radioButtonIgnore.Checked ? SpecifiedFileNamesAndExtensionsMode.IGNORE :
+                SpecifiedFileNamesAndExtensionsMode.ALLOW_ONLY;
+            editedOption.MoveSubFolders = checkBoxMoveSubfolders.Checked;
+            editedOption.KeepOriginFiles = checkBoxKeepOriginFiles.Checked;
+            editedOption.CleanDestinyDirectory = checkBoxCleanDestinyDirectory.Checked;
+            editedOption.DeleteUncommonFiles = checkBoxDeleteUncommonFiles.Checked;
+            editedOption.AllowIgnoreFileExt = checkBoxManageFileNamesAndExtensions.Checked;
+            editedOption.SpecifiedFileNamesAndExtensions = ListViewFileExtensionsToList();
+        }
+
+        private List<string> ListViewFileExtensionsToList()
+        {
+            List<string> extensions = new List<string>();
+
+            foreach(ListViewItem item in listViewFileNamesAndExtensions.Items)
+                extensions.Add(item.Text);
+
+            return extensions;
         }
 
         private void ButtonAddSource_Click(object sender, EventArgs e)
@@ -172,51 +279,49 @@ namespace BackupHelper
         }
 
 
-        //-- ################ EXTENSIONS METHODS ################
+        //-- ################ FILENAMES AND EXTENSIONS METHODS ################
 
         private void CheckBoxManageFileExtensions_CheckedChanged(object sender, EventArgs e)
         {
-            if (checkBoxManageFileExtensions.Checked == true)
+            if (checkBoxManageFileNamesAndExtensions.Checked == true)
             {
                 radioButtonAllowOnly.Enabled = true;
                 radioButtonIgnore.Enabled = true;
-                listViewExtensions.Enabled = true;
-                listViewExtensions.ForeColor = System.Drawing.SystemColors.WindowText;
-                textBoxExtension.Enabled = true;
-                buttonAddExtension.Enabled = true;
-                buttonRemoveExtension.Enabled = true;
+                listViewFileNamesAndExtensions.Enabled = true;
+                listViewFileNamesAndExtensions.ForeColor = System.Drawing.SystemColors.WindowText;
+                textBoxFileNameOrExtension.Enabled = true;
+                buttonAddFileOrExtension.Enabled = true;
+                buttonRemoveFileOrExtension.Enabled = true;
             }
             else
             {
                 radioButtonAllowOnly.Enabled = false;
                 radioButtonIgnore.Enabled = false;
-                listViewExtensions.Enabled = false;
-                listViewExtensions.ForeColor = System.Drawing.SystemColors.InactiveCaption;
-                textBoxExtension.Enabled = false;
-                buttonAddExtension.Enabled = false;
-                buttonRemoveExtension.Enabled = false;
+                listViewFileNamesAndExtensions.Enabled = false;
+                listViewFileNamesAndExtensions.ForeColor = System.Drawing.SystemColors.InactiveCaption;
+                textBoxFileNameOrExtension.Enabled = false;
+                buttonAddFileOrExtension.Enabled = false;
+                buttonRemoveFileOrExtension.Enabled = false;
             }
-        }
-
-        private void RadioButtonAllowOnly_CheckedChanged(object sender, EventArgs e)
-        {
-            LoadListViewExtensions();
         }
 
         private void ButtonAddExtension_Click(object sender, EventArgs e)
         {
-            AddExtension();
+            AddListViewExtension();
         }
 
-        private bool ExtensionStringIsValid()
+        private bool FileNameOrExtensionIsValid(string text)
         {
-            int length = textBoxExtension.Text.Length;
-            if (textBoxExtension.Text == "" || textBoxExtension.Text.Substring(0, 1) != "."
-               || textBoxExtension.Text.Substring(length - 1) == "."
-               || textBoxExtension.Text.Substring(1, 1) == ".") return false;
+            int length = textBoxFileNameOrExtension.Text.Length;
+            if (text == "" || text.Substring(length - 1) == ".") return false;
 
+            foreach (char s in Path.GetInvalidFileNameChars())
+                if (text.Contains(s.ToString())) return false;
+
+            //|| text.Substring(0, 1) != "." || text.Substring(1, 1) == "."
             return true;
         }
+
         private void ButtonRemoveExtension_Click(object sender, EventArgs e)
         {
             RemoveListViewExtension();
@@ -225,97 +330,55 @@ namespace BackupHelper
         private void RemoveListViewExtension()
         {
             //-- REMOVE SELECTED
-            if (listViewExtensions.SelectedItems.Count > 0)
+            if (listViewFileNamesAndExtensions.SelectedItems.Count > 0)
             {
-                if (radioButtonAllowOnly.Checked)
-                    this.Option.AllowOnlyFileExtensions.Remove(this.Option.AllowOnlyFileExtensions.Find(x => x.ExtensionName == listViewExtensions.SelectedItems[0].Text));
-                else
-                    this.Option.IgnoredFileExtensions.Remove(this.Option.IgnoredFileExtensions.Find(x => x.ExtensionName == listViewExtensions.SelectedItems[0].Text));
-                listViewExtensions.SelectedItems[0].Remove();
+                listViewFileNamesAndExtensions.SelectedItems[0].Remove();
                 return;
             }
             //-- REMOVE TYPED
-            else if (ExtensionStringIsValid())
+            else if (textBoxFileNameOrExtension.Text != "") //ExtensionStringIsValid()
             {
-                FileExtension allowedFileExtension = this.Option.AllowOnlyFileExtensions.Find(x => x.ExtensionName == textBoxExtension.Text);
-                FileExtension ignoredFileExtension = this.Option.IgnoredFileExtensions.Find(x => x.ExtensionName == textBoxExtension.Text);
+                if (listViewFileNamesAndExtensions.Items.Count == 0) return;
 
-                if (radioButtonAllowOnly.Checked && allowedFileExtension != null)
-                {
-                    this.Option.AllowOnlyFileExtensions.Remove(allowedFileExtension);
-                    LoadListViewExtensions();
-                    return;
-                }
-                else if (radioButtonIgnore.Checked && ignoredFileExtension != null)
-                {
-                    this.Option.IgnoredFileExtensions.Remove(ignoredFileExtension);
-                    LoadListViewExtensions();
-                    return;
-                }
-            }
-            MessageBox.Show("Select or type an existing extension to be removed.");
-        }
+                ListViewItem listViewItem = FindListViewExtensionsItem(textBoxFileNameOrExtension.Text);
 
-        private void LoadListViewExtensions()
-        {
-            foreach (ListViewItem item in listViewExtensions.Items) listViewExtensions.Items.Remove(item);
+                if (listViewItem != null)
+                    listViewFileNamesAndExtensions.Items.Remove(listViewItem);
+                //else
+                //    MessageBox.Show($"No extension named \"{textBoxExtension.Text}\".");
 
-            if (radioButtonIgnore.Checked)
-            {
-                foreach (FileExtension ext in Option.IgnoredFileExtensions)
-                {
-                    ListViewItem lvi = new ListViewItem(ext.ExtensionName);
-                    lvi.Tag = ext.Id;
-                    listViewExtensions.Items.Add(lvi);
-                }
-            }
-            else
-            {
-                foreach (FileExtension ext in Option.AllowOnlyFileExtensions)
-                {
-                    ListViewItem lvi = new ListViewItem(ext.ExtensionName);
-                    lvi.Tag = ext.Id;
-                    listViewExtensions.Items.Add(lvi);
-                }
-            }
-        }
-
-        private void AddExtension()
-        {
-            if (!ExtensionStringIsValid())
-            {
-                MessageBox.Show("Enter a valid extension name,e.g.,'.txt'.");
                 return;
             }
 
-            if (radioButtonAllowOnly.Checked == true)
+            MessageBox.Show("Select or type an existing extension to be removed.");
+        }
+
+        private ListViewItem FindListViewExtensionsItem(string text)
+        {
+            foreach (ListViewItem item in listViewFileNamesAndExtensions.Items)
             {
-                if (this.Option.AllowOnlyFileExtensions.Find(x => x.ExtensionName == textBoxExtension.Text) != null)
-                {
-                    MessageBox.Show("Extension name already entered.");
-                    return;
-                }
-                this.Option.AddAllowOnlyFileExtension(new FileExtension()
-                {
-                    ExtensionName = textBoxExtension.Text,
-                    Option = this.Option
-                });
-                listViewExtensions.Items.Add(new ListViewItem(textBoxExtension.Text));
+                if (item.Text == text)
+                    return item;
             }
-            else
+            
+            return null;
+        }
+
+        private void AddListViewExtension()
+        {
+            if (!FileNameOrExtensionIsValid(textBoxFileNameOrExtension.Text))
             {
-                if (this.Option.IgnoredFileExtensions.Find(x => x.ExtensionName == textBoxExtension.Text) != null)
-                {
-                    MessageBox.Show("Extension name already entered.");
-                    return;
-                }
-                this.Option.AddIgnoredFileExtensions(new FileExtension()
-                {
-                    ExtensionName = textBoxExtension.Text,
-                    Option = this.Option
-                });
-                listViewExtensions.Items.Add(new ListViewItem(textBoxExtension.Text));
+                MessageBox.Show("Enter a valid filename or extension name,e.g.,\".txt\",\"myfile.exe\".");
+                return;
             }
+
+            if(FindListViewExtensionsItem(textBoxFileNameOrExtension.Text) != null)
+            {
+                MessageBox.Show("Extension name already entered.");
+                return;
+            }
+
+            listViewFileNamesAndExtensions.Items.Add(new ListViewItem(textBoxFileNameOrExtension.Text));
         }
 
         //this.textBoxExtension.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TextBoxExtension_KeyDown);
@@ -330,7 +393,7 @@ namespace BackupHelper
 
         private void ListViewExtensions_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Delete && listViewExtensions.SelectedItems.Count > 0)
+            if (e.KeyCode == Keys.Delete && listViewFileNamesAndExtensions.SelectedItems.Count > 0)
                 RemoveListViewExtension();
         }
 
@@ -339,45 +402,20 @@ namespace BackupHelper
             if (e.KeyChar == (char)Keys.Enter)
             {
                 e.Handled = true;
-                AddExtension();
+                AddListViewExtension();
             }
         }
 
         private void FormEditOption_KeyDown(object sender, KeyEventArgs args)
         {
             if (args.Control && args.KeyCode == Keys.S)
-                SubmitChanges();
-        }
-
-        private bool OptionsAreEqual(Option previousOption,Option currentOption)
-        {
-            return
-                previousOption.Id == currentOption.Id &&
-                previousOption.ListViewIndex == currentOption.ListViewIndex &&
-                previousOption.SourcePath == currentOption.SourcePath &&
-                previousOption.DestinyPath == currentOption.DestinyPath &&
-                previousOption.MoveSubFolders == currentOption.MoveSubFolders &&
-                previousOption.KeepOriginFiles == currentOption.KeepOriginFiles &&
-                previousOption.CleanDestinyDirectory == currentOption.CleanDestinyDirectory &&
-                previousOption.DeleteUncommonFiles == currentOption.DeleteUncommonFiles &&
-                previousOption.AllowIgnoreFileExt == currentOption.AllowIgnoreFileExt &&
-                previousOption.TransferMethod.Id == currentOption.TransferMethod.Id &&
-
-                //AllowOnlyFileExtensions.All(option.AllowOnlyFileExtensions.Contains) && AllowOnlyFileExtensions.Count == option.AllowOnlyFileExtensions.Count &&
-                //IgnoredFileExtensions.All(option.IgnoredFileExtensions.Contains) && IgnoredFileExtensions.Count == option.IgnoredFileExtensions.Count;
-
-                ExtensionListsAreTheSame(previousOption.AllowOnlyFileExtensions, currentOption.AllowOnlyFileExtensions) &&
-                ExtensionListsAreTheSame(previousOption.IgnoredFileExtensions, currentOption.IgnoredFileExtensions);
-        }
-
-        private bool ExtensionListsAreTheSame(List<FileExtension> list1, List<FileExtension> list2)
-        {
-            if (list2.Count != list1.Count) return false;
-            foreach (FileExtension ext in list1)
             {
-                if (list2.Find(x => x.ExtensionName == ext.ExtensionName) == null) return false;
+                args.Handled = true;
+                SubmitChanges();
+
+                if (DialogResult != DialogResult.None)
+                    Close();
             }
-            return true;
         }
     }
 }
