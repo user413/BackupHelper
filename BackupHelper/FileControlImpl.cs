@@ -14,6 +14,9 @@ namespace BackupHelper
 
         public override void HandleCurrentFileExecution(string trimmedPathWithFileName)
         {
+            if (trimmedPathWithFileName.Length > 100)
+                trimmedPathWithFileName = $"...{trimmedPathWithFileName.Substring(trimmedPathWithFileName.Length - 100)}";
+
             Menu.ShowCurrentFileExecution(trimmedPathWithFileName);
         }
 

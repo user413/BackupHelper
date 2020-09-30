@@ -217,10 +217,11 @@ namespace BackupHelper
                 string text = "Delete selected option?";
                 if (MessageBox.Show(text, "", MessageBoxButtons.OKCancel) == DialogResult.OK)
                 {
-                    var option = this.Options.Find(x => x.Id == int.Parse(selectedItem.Tag.ToString()));
+                    var option = Options.Find(x => x.Id == int.Parse(selectedItem.Tag.ToString()));
                     DBAccess.DeleteOption(option);
                     Options.Remove(option);
                     selectedItem.Remove();
+                    Program.UpdateLastTimeModified(Profile);
                     UpdateOptionListViewIndexes();
                     ResizeForm();
                 }

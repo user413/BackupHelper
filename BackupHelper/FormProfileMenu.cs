@@ -155,8 +155,8 @@ namespace BackupHelper
             item.Tag = profile.Id;
             item.Text = profile.Name;
             item.SubItems.AddRange(new string[] {
-                profile.LastTimeModified == DateTime.MinValue ? "Never" : profile.LastTimeModified.ToString(),
                 profile.LastTimeExecuted == DateTime.MinValue ? "Never" : profile.LastTimeExecuted.ToString(),
+                profile.LastTimeModified == DateTime.MinValue ? "Never" : profile.LastTimeModified.ToString(),
                 profile.TimeCreated.ToString(),
             });
         }

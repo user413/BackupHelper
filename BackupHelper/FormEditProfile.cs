@@ -27,6 +27,7 @@ namespace BackupHelper
             {
                 Action = FormEditProfileAction.ADD;
                 this.Text = "Add profile";
+                textBoxProfileName.Text = "New Profile";
             }
             else
             {
@@ -42,6 +43,12 @@ namespace BackupHelper
 
         private void SaveProfile()
         {
+            if (Action == FormEditProfileAction.EDIT && textBoxProfileName.Text == Profile.Name)
+            {
+                Close();
+                return;
+            }
+
             if (textBoxProfileName.Text == "")
             {
                 MessageBox.Show("Invalid name.");
