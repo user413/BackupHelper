@@ -156,7 +156,7 @@ namespace BackupHelper
             profile.LastTimeModified = DateTime.Now;
             DBAccess.UpdateProfile(profile);
             if(ProfileMenu != null) ProfileMenu.GetListViewItemById(profile.Id).SubItems[(int)ListViewProfileSubItemIndex.INDEX_TIME_MODIFIED].Text = 
-                    profile.LastTimeModified.ToString();
+                profile.LastTimeModified.ToString();
         }
 
         public static void UpdateLastTimeExecuted(Profile profile)

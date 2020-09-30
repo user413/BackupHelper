@@ -755,7 +755,7 @@ namespace FileControlUtility
                     {
                         try
                         {
-                            throw new Exception();
+                            //throw new Exception();
                             File.Copy(originPathWithFileName, destinyPathWithNewFileName);
                             RenamedFilesReports.Add(new RenamedFilesReport
                             {
