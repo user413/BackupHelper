@@ -9,7 +9,7 @@ namespace BackupHelper
 
         public FileControlImpl(FormOptionsMenu menu)
         {
-            this.Menu = menu;
+            Menu = menu;
         }
 
         public override void HandleCurrentFileExecution(string trimmedPathWithFileName)

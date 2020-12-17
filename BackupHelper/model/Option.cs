@@ -6,6 +6,7 @@ namespace BackupHelper.model
     public class Option : TransferSettings
     {
         public int Id { get; set; }
+        public bool AllowIgnoreFileExt { get; set; }
         public int ListViewIndex { get; set; }
         public Profile Profile { get; set; }
 

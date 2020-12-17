@@ -13,6 +13,7 @@ namespace BackupHelper
         {
             InitializeComponent();
             textBoxErrorDialog.Text = message;
+            textBoxErrorDialog.TabStop = false;
             ActionType = actionType;
             if(actionType == typeof(FileTransferErrorActionNonRepeatable))
                 this.buttonTryAgain.Enabled = false;

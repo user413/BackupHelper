@@ -49,7 +49,7 @@ namespace BackupHelper
             Profile = profile;
             ProfileMenu = profileMenu;
             CancelExecutionForm = new FormCancelExecution();
-            Text = "Profile:  " + this.Profile.Name;
+            Text = "Profile:  " + Profile.Name;
             if (profileMenu.LastReport != null)
                 buttonShowResult.Enabled = true;
 
@@ -66,7 +66,7 @@ namespace BackupHelper
         {
             try
             {
-                Options = DBAccess.ListProfileOptions(this.Profile).OrderBy(x => x.ListViewIndex).ToList();
+                Options = DBAccess.ListProfileOptions(Profile).OrderBy(x => x.ListViewIndex).ToList();
 
                 foreach (Option option in Options)
                 {
@@ -110,12 +110,12 @@ namespace BackupHelper
         public void ResizeForm()
         {
             //CHANGING FORM HEIGHT RESPONSIVELY DEPENDING ON NUMBER OF OPTIONS
-            if (this.Options.Count() > InitialListViewItemCount && this.Options.Count() < MaximumListViewItemCount)
-                this.Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight + (this.Options.Count() - InitialListViewItemCount) * ListOptionHeight);
-            else if (this.Options.Count() >= MaximumListViewItemCount)
-                this.Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight + (ListOptionHeight * AditionalListViewItemCount));
-            else if (this.Bounds.Height != InitialFormHeight)
-                this.Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight);
+            if (Options.Count() > InitialListViewItemCount && Options.Count() < MaximumListViewItemCount)
+                Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight + (Options.Count() - InitialListViewItemCount) * ListOptionHeight);
+            else if (Options.Count() >= MaximumListViewItemCount)
+                Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight + (ListOptionHeight * AditionalListViewItemCount));
+            else if (Bounds.Height != InitialFormHeight)
+                Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight);
         }
 
         private void ButtonAddOption_Click(object sender, EventArgs args)
@@ -136,7 +136,7 @@ namespace BackupHelper
             try
             {
                 ListViewItem item = listViewOptions.SelectedItems[0];
-                Option option = this.Options.Find(x => x.Id == int.Parse(item.Tag.ToString()));
+                Option option = Options.Find(x => x.Id == int.Parse(item.Tag.ToString()));
                 FormEditOption edit = new FormEditOption(this, option);
                 edit.Show(this);
             }
@@ -239,13 +239,13 @@ namespace BackupHelper
         {
             try
             {
-                if (this.Options.Count() == 0)
+                if (Options.Count() == 0)
                 {
                     MessageBox.Show("No options were added.");
                     return;
                 }
 
-                this.FileControl = new FileControlImpl(this);
+                FileControl = new FileControlImpl(this);
 
                 try
                 {
@@ -257,9 +257,9 @@ namespace BackupHelper
                     return;
                 }
 
-                this.Options = this.Options.OrderBy(x => x.ListViewIndex).ToList();
+                Options = Options.OrderBy(x => x.ListViewIndex).ToList();
 
-                Program.UpdateLastTimeExecuted(this.Profile);
+                Program.UpdateLastTimeExecuted(Profile);
 
                 //this.OptionIsExecuting = true;
                 LogManager.BeginWritter();
@@ -267,7 +267,7 @@ namespace BackupHelper
                 //LogManager.WriteLine("##### Transfer date: " + DateTime.Now.ToLongDateString());
                 progressBarOptions.Step = 1;
                 progressBarOptions.Enabled = true;
-                this.Cursor = Cursors.AppStarting;
+                Cursor = Cursors.AppStarting;
                 buttonAddOption.Visible = false;
                 buttonExecute.Visible = false;
                 buttonShowResult.Visible = false;
@@ -282,10 +282,11 @@ namespace BackupHelper
 
                 ExecutionThread = new Thread(() =>
                 {
-
                     try
                     {
-                        FileControl.ManageFiles(Options.ToList<TransferSettings>());
+                        List<Option> options = Options.ToList();
+                        options.ForEach(o => o.SpecifiedFileNamesAndExtensions = o.AllowIgnoreFileExt ? o.SpecifiedFileNamesAndExtensions : new List<string>());
+                        FileControl.ManageFiles(options.ToList<TransferSettings>());
                     }
                     catch (Exception e)
                     {
@@ -299,7 +300,7 @@ namespace BackupHelper
                         LogManager.CloseWritter();
                         progressBarOptions.Enabled = false;
                         progressBarOptions.Value = 0;
-                        this.Cursor = Cursors.Default;
+                        Cursor = Cursors.Default;
                         labelTransfering.Visible = false;
                         textBoxTransfering.Visible = false;
                         textBoxTransfering.Text = "";
@@ -314,7 +315,7 @@ namespace BackupHelper
                         labelMoveOptionUp.Visible = true;
                         //this.OptionIsExecuting = false;
                         buttonShowResult.Enabled = true;
-                        this.Enabled = true;
+                        Enabled = true;
 
                         ProfileMenu.LastReport = new FormReport(this, FileControl.TransFilesReports, FileControl.NotTransFilesReports,
                             FileControl.RenamedFilesReports, FileControl.CreatedDirReports, FileControl.ReplacedFilesReports, 
@@ -367,22 +368,22 @@ namespace BackupHelper
 
         private void ToolStripMenuItemCopySourcePath_Click(object sender, EventArgs e)
         {
-            CopyToClipboard(this.listViewOptions.SelectedItems[0].Text);
+            CopyToClipboard(listViewOptions.SelectedItems[0].Text);
         }
 
         private void ToolStripMenuItemCopyDestinyPath_Click(object sender, EventArgs e)
         {
-            CopyToClipboard(this.listViewOptions.SelectedItems[0].SubItems[(int)ListViewOptionSubItemIndex.INDEX_DESTINY_PATH].Text);
+            CopyToClipboard(listViewOptions.SelectedItems[0].SubItems[(int)ListViewOptionSubItemIndex.INDEX_DESTINY_PATH].Text);
         }
 
         private void ToolStripMenuItemOpenSourceFolder_Click(object sender, EventArgs e)
         {
-            OpenFolder(this.listViewOptions.SelectedItems[0].Text);
+            OpenFolder(listViewOptions.SelectedItems[0].Text);
         }
 
         private void ToolStripMenuItemOpenDestinyFolder_Click(object sender, EventArgs e)
         {
-            OpenFolder(this.listViewOptions.SelectedItems[0].SubItems[(int)ListViewOptionSubItemIndex.INDEX_DESTINY_PATH].Text);
+            OpenFolder(listViewOptions.SelectedItems[0].SubItems[(int)ListViewOptionSubItemIndex.INDEX_DESTINY_PATH].Text);
         }
 
         private void ListViewOptionsMenu_DoubleClick(object sender, EventArgs args)
@@ -547,7 +548,7 @@ namespace BackupHelper
                 clonedOption.ListViewIndex = listViewOptions.Items.Count;
                 DBAccess.AddOption(clonedOption);
                 Options.Add(clonedOption);
-                Program.UpdateLastTimeModified(this.Profile);
+                Program.UpdateLastTimeModified(Profile);
                 ListViewItem item = new ListViewItem();
                 EditListViewItem(clonedOption, item);
                 listViewOptions.Items.Add(item);

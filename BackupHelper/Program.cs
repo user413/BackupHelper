@@ -2,6 +2,7 @@
 using FileControlUtility;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,15 +13,18 @@ namespace BackupHelper
     static class Program
     {
 
-        //-- DEVELOPING LOCATION
-        //public static string DBPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\..\\database\\backup_helper.db";
-        //-- RELEASE LOCATION
         public static string DBPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\backup_helper.db";
         public static FormProfileMenu ProfileMenu;
 
         [STAThread]
         static void Main(string[] args)
         {
+            if (ApplicationIsRunning())
+            {
+                MessageBox.Show("Application is already running.");
+                return;
+            }
+
             //args = new string[] { "new:w", "s"};
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -146,9 +150,23 @@ namespace BackupHelper
             //}
 
 
-            Console.WriteLine("Backup Helper 1.1.0 - Log...");
+            Console.WriteLine("Backup Helper - Log...");
             ProfileMenu = new FormProfileMenu();
             Application.Run(ProfileMenu);
+        }
+
+        public static bool ApplicationIsRunning()
+        {
+            Process currentProcess = Process.GetCurrentProcess();
+
+            foreach (Process process in Process.GetProcessesByName(currentProcess.ProcessName))
+            {
+                if ((process.Id != currentProcess.Id) &&
+                    (process.MainModule.FileName == currentProcess.MainModule.FileName))
+                    return true;
+            }
+
+            return false;
         }
 
         public static void UpdateLastTimeModified(Profile profile)

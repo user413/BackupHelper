@@ -37,7 +37,7 @@
             // 
             this.buttonSaveProfile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSaveProfile.Location = new System.Drawing.Point(102, 67);
+            this.buttonSaveProfile.Location = new System.Drawing.Point(103, 67);
             this.buttonSaveProfile.Name = "buttonSaveProfile";
             this.buttonSaveProfile.Size = new System.Drawing.Size(71, 29);
             this.buttonSaveProfile.TabIndex = 1;
