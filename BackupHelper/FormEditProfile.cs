@@ -20,18 +20,18 @@ namespace BackupHelper
         {
             InitializeComponent();
             textBoxProfileName.AcceptsReturn = false;
-            this.KeyPreview = true;
-            this.ProfileMenu = menu;
+            KeyPreview = true;
+            ProfileMenu = menu;
 
             if (profile == null)
             {
                 Action = FormEditProfileAction.ADD;
-                this.Text = "Add profile";
+                Text = "Add profile";
                 textBoxProfileName.Text = "New Profile";
             }
             else
             {
-                this.Profile = profile;
+                Profile = profile;
                 textBoxProfileName.Text = profile.Name;
             }
         }
