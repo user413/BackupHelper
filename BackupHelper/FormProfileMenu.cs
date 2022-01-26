@@ -1,7 +1,9 @@
 ﻿using BackupHelper.model;
+using BinanceAutoTrader;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -22,32 +24,166 @@ namespace BackupHelper
         public List<Profile> Profiles;
         public FormReport LastReport;
 
-        //--FORM RESIZING VARIABLES
-        private readonly int InitialFormWidth;
-        private readonly int InitialFormHeight;
-        private readonly int ListProfileHeight = 17;
-        private readonly int AditionalListViewItemCount = 6;
-        private readonly int InitialListViewItemCount = 10;
-        private readonly int MaximumListViewItemCount;
+        ////--FORM RESIZING VARIABLES
+        //private readonly int InitialFormWidth;
+        //private readonly int InitialFormHeight;
+        //private readonly int ListProfileHeight = 17;
+        //private readonly int AditionalListViewItemCount = 6;
+        //private readonly int InitialListViewItemCount = 10;
+        //private readonly int MaximumListViewItemCount;
+
+        //-- Clicking/dragdrop functions
+        private System.Timers.Timer ClickTimer = new System.Timers.Timer(300);
+        private int MouseDownCount = 0;
+        private int MouseUpCount = 0;
+        private ListViewItem ClickedItem;
 
         public FormProfileMenu()
         {
             InitializeComponent();
+            listViewProfile.Groups.Add("Ungrouped", "Ungrouped");
+            contextMenuStripProfile.Opening += ContextMenuStripProfile_Opening;
+            labelVersion.Text = $"Version {Application.ProductVersion} ©{Application.CompanyName} 2022";
             KeyPreview = true;
-            listViewProfile.KeyDown += new KeyEventHandler(this.FormProfileMenu_KeyDown);
-            InitialFormWidth = this.Bounds.Width;
-            InitialFormHeight = this.Bounds.Height;
-            AditionalListViewItemCount = 6;
-            InitialListViewItemCount = 10;
-            MaximumListViewItemCount = AditionalListViewItemCount + InitialListViewItemCount;
-            LoadListView();
+            ClickTimer.Elapsed += ClickTimer_Elapsed;
+            ClickTimer.AutoReset = false;
+            listViewProfile.KeyDown += new KeyEventHandler(FormProfileMenu_KeyDown);
+            listViewProfile.MouseDown += ListViewProfile_MouseDown;
+            listViewProfile.MouseUp += ListViewProfile_MouseUp;
+            listViewProfile.DragEnter += ListViewProfile_DragEnter;
+            listViewProfile.DragDrop += ListViewProfile_DragDrop;
+            //InitialFormWidth = Bounds.Width;
+            //InitialFormHeight = Bounds.Height;
+            //AditionalListViewItemCount = 6;
+            //InitialListViewItemCount = 10;
+            //MaximumListViewItemCount = AditionalListViewItemCount + InitialListViewItemCount;
+            ListProfiles();
         }
 
-        private void LoadListView()
+        private void ClickTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            Invoke(new Action(() =>
+            {
+                if (ClickedItem == null)
+                {
+                    MouseDownCount = 0;
+                    return;
+                }
+
+                if (MouseDownCount == 1)
+                {
+                    if (MouseUpCount > 0) return;
+                    List<ListViewItem> selectedItems = listViewProfile.SelectedItems.Cast<ListViewItem>().ToList();
+
+                    if (!selectedItems.Exists(i => i == ClickedItem))
+                        selectedItems = new List<ListViewItem>() { ClickedItem };
+
+                    listViewProfile.DoDragDrop(selectedItems, DragDropEffects.Move);
+                }
+                else
+                {
+                    OpenSelectedProfile();
+                }
+            }));
+        }
+
+        private void ListViewProfile_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left) return;
+            //if (listViewOptions.GetItemAt(e.X, e.Y) == null) return;
+            MouseUpCount++;
+        }
+
+        private void ListViewProfile_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left) return;
+
+            ListViewItem selected = listViewProfile.GetItemAt(e.X, e.Y);
+            if (selected == null) return;
+
+            if (!ClickTimer.Enabled)
+            {
+                MouseDownCount = 0;
+                MouseUpCount = 0;
+                ClickTimer.Start();
+                ClickedItem = selected;
+            }
+            else
+                if (selected != ClickedItem) ClickedItem = null;
+
+            MouseDownCount++;
+        }
+
+        private void ListViewProfile_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(typeof(List<ListViewItem>)))
+                e.Effect = DragDropEffects.Move;
+            else
+                e.Effect = DragDropEffects.None;
+        }
+
+        private void ListViewProfile_DragDrop(object sender, DragEventArgs args)
         {
             try
             {
-                this.Profiles = DBAccess.ListProfiles().OrderBy(x => x.ListViewIndex).ToList();
+                List<ListViewItem> selectedItems = (List<ListViewItem>)args.Data.GetData(typeof(List<ListViewItem>));
+                Point targetCoordinates = listViewProfile.PointToClient(new Point(args.X, args.Y));
+                ListViewItem targetItem = listViewProfile.GetItemAt(targetCoordinates.X, targetCoordinates.Y);
+
+                if (targetItem == null || selectedItems.Exists(i => i == targetItem) /*|| targetItem.Group != selectedItems[0].Group*/) return;
+
+                bool indexIsBehind = selectedItems.Last().Index < targetItem.Index;
+
+                try
+                {
+                    foreach (ListViewItem i in selectedItems)
+                    {
+                        listViewProfile.Items.Remove(i);
+                        i.Group = targetItem.Group;
+                    }
+
+                    for (int i = 0; i < selectedItems.Count; i++)
+                        listViewProfile.Items.Insert(indexIsBehind ? targetItem.Index + 1 + i : targetItem.Index, selectedItems[i]);
+
+                    //-- Due to a bug / makes items appear in the correct listview positions
+                    string tempGName = targetItem.Group.Header;
+                    targetItem.Group.Header = "tmp";
+                    targetItem.Group.Header = tempGName;
+                }
+                finally
+                {
+                    UpdateProfileListViewIndexes();
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
+
+        private void ContextMenuStripProfile_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (listViewProfile.SelectedItems.Count == 1)
+            {
+                toolStripMenuItemChangeName.Enabled = true;
+                toolStripMenuItemClone.Enabled = true;
+                toolStripMenuItemDeleteProfile.Enabled = true;
+            }
+            else if (listViewProfile.SelectedItems.Count > 1)
+            {
+                toolStripMenuItemChangeName.Enabled = false;
+                toolStripMenuItemClone.Enabled = false;
+                toolStripMenuItemDeleteProfile.Enabled = false;
+            }
+            else
+                e.Cancel = true;
+        }
+
+        private void ListProfiles()
+        {
+            try
+            {
+                Profiles = DBAccess.ListProfiles().OrderBy(p => p.ListViewIndex).ToList();
                 
                 foreach (Profile prof in Profiles)
                 {
@@ -56,7 +192,7 @@ namespace BackupHelper
                     listViewProfile.Items.Add(item);
                 }
 
-                ResizeForm();
+                //ResizeForm();
             }
             catch (Exception e)
             {
@@ -68,58 +204,42 @@ namespace BackupHelper
         {
             foreach (ListViewItem item in listViewProfile.Items)
             {
-                Profile profile = Profiles.Find(x => x.Id == int.Parse(item.Tag.ToString()));
-                int currentIndex = profile.ListViewIndex;
+                Profile profile= Profiles.Find(o => o.Id == (int)item.Tag);
 
-                try
+                if (profile.ListViewIndex != item.Index)
                 {
                     profile.ListViewIndex = item.Index;
+                    profile.GroupName = item.Group.Header;
                     DBAccess.UpdateProfileListViewIndex(profile);
-                }
-                catch (Exception)
-                {
-                    try
-                    {
-                        profile.ListViewIndex = currentIndex;
-                        DBAccess.UpdateProfileListViewIndex(profile);
-                    }
-                    catch (Exception) { }
-                    throw;
                 }
             }
         }
 
-        public void ResizeForm()
-        {
-            //-- CHANGING FORM HEIGHT RESPONSIVELY DEPENDING ON NUMBER OF PROFILES
-            if (this.Profiles.Count() > InitialListViewItemCount && this.Profiles.Count() < MaximumListViewItemCount)
-                this.Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight + (this.Profiles.Count() - InitialListViewItemCount) * ListProfileHeight);
-            else if (this.Profiles.Count() >= MaximumListViewItemCount)
-                this.Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight + (ListProfileHeight * AditionalListViewItemCount));
-            else if (this.Bounds.Height != InitialFormHeight)
-                this.Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight);
-        }
+        //public void ResizeForm()
+        //{
+        //    //-- CHANGING FORM HEIGHT RESPONSIVELY DEPENDING ON NUMBER OF PROFILES
+        //    if (Profiles.Count() > InitialListViewItemCount && Profiles.Count() < MaximumListViewItemCount)
+        //        Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight + (Profiles.Count() - InitialListViewItemCount) * ListProfileHeight);
+        //    else if (Profiles.Count() >= MaximumListViewItemCount)
+        //        Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight + (ListProfileHeight * AditionalListViewItemCount));
+        //    else if (Bounds.Height != InitialFormHeight)
+        //        Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight);
+        //}
 
-        private void ListViewProfileItem_DoubleClick(object sender, EventArgs args)
-        {
-            OpenSelectedProfile();
-        }
+        //private void ListViewProfileItem_DoubleClick(object sender, EventArgs args)
+        //{
+        //    OpenSelectedProfile();
+        //}
 
         private void OpenSelectedProfile()
         {
             try
             {
-                if(listViewProfile.SelectedItems.Count <= 0)
-                {
-                    MessageBox.Show("Click a profile first.");
-                    return;
-                }
-
                 FormOptionsMenu optionsMenu = new FormOptionsMenu(this,
-                    Profiles.Find(x => x.Id == int.Parse(listViewProfile.SelectedItems[0].Tag.ToString())));
+                    Profiles.Find(x => x.Id == (int)listViewProfile.SelectedItems[0].Tag));
 
                 optionsMenu.Show(this);
-                this.Hide();
+                Hide();
             }
             catch (ArgumentOutOfRangeException)
             {
@@ -154,6 +274,7 @@ namespace BackupHelper
 
             item.Tag = profile.Id;
             item.Text = profile.Name;
+            SetListViewItemGroup(item, profile.GroupName, listViewProfile);
             item.SubItems.AddRange(new string[] {
                 profile.LastTimeExecuted == DateTime.MinValue ? "Never" : profile.LastTimeExecuted.ToString(),
                 profile.LastTimeModified == DateTime.MinValue ? "Never" : profile.LastTimeModified.ToString(),
@@ -161,18 +282,26 @@ namespace BackupHelper
             });
         }
 
+        private void SetListViewItemGroup(ListViewItem item, string header, ListView listView)
+        {
+            foreach (ListViewGroup group in listView.Groups)
+                if (group.Header == header)
+                {
+                    item.Group = group;
+                    return;
+                }
+
+            ListViewGroup newGroup = new ListViewGroup(header);
+            listView.Groups.Add(newGroup);
+            item.Group = newGroup;
+        }
+
         private void EditSelectedProfileName()
         {
             try
             {
-                if (listViewProfile.SelectedItems.Count <= 0)
-                {
-                    MessageBox.Show("Click a profile first.");
-                    return;
-                }
-
                 FormEditProfile edit = new FormEditProfile(this,
-                    Profiles.Find(x => x.Id == int.Parse(listViewProfile.SelectedItems[0].Tag.ToString())));
+                    Profiles.Find(p => p.Id == (int)listViewProfile.SelectedItems[0].Tag));
 
                 edit.ShowDialog(this);
             }
@@ -191,7 +320,7 @@ namespace BackupHelper
             try
             {
                 ListViewItem selectedItem = listViewProfile.SelectedItems[0];
-                Profile profile = Profiles.Find(x => x.Id == int.Parse(selectedItem.Tag.ToString()));
+                Profile profile = Profiles.Find(p => p.Id == int.Parse(selectedItem.Tag.ToString()));
                 string text = $"Delete \"{profile.Name}\"?";
 
                 if (MessageBox.Show(text, "", MessageBoxButtons.OKCancel) == DialogResult.OK)
@@ -200,7 +329,7 @@ namespace BackupHelper
                     Profiles.Remove(profile);
                     listViewProfile.Items.Remove(selectedItem);
                     UpdateProfileListViewIndexes();
-                    ResizeForm();
+                    //ResizeForm();
                 }
             }
             catch (ArgumentOutOfRangeException)
@@ -374,7 +503,7 @@ namespace BackupHelper
 
         private void ToolStripMenuItemClone_Click(object sender, EventArgs e)
         {
-            Profile profile = Profiles.Find(x => x.Id == int.Parse(listViewProfile.SelectedItems[0].Tag.ToString()));
+            Profile profile = Profiles.Find(x => x.Id == (int)listViewProfile.SelectedItems[0].Tag);
 
             Profile clonedProfile = profile.Clone();
             clonedProfile.Name = GenerateEnumeratedName(clonedProfile.Name);
@@ -397,7 +526,7 @@ namespace BackupHelper
             ListViewItem item = new ListViewItem();
             EditListViewItem(clonedProfile, item);
             listViewProfile.Items.Add(item);
-            ResizeForm();
+            //ResizeForm();
         }
 
         private string GenerateEnumeratedName(string name)
@@ -414,6 +543,12 @@ namespace BackupHelper
                     return newName;
                 c++;
             }
+        }
+
+        private void ToolStripMenuItemGroup_Click(object sender, EventArgs e)
+        {
+            GroupForm form = new GroupForm(this);
+            form.ShowDialog();
         }
     }
 }

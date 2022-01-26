@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackupHelper", "BackupHelper\BackupHelper.csproj", "{960576ED-78BD-460D-9C5E-3E422329FA1B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileControlUtility", "..\..\Library\FileControlUtility\FileControlUtility\FileControlUtility.csproj", "{6284BB33-ABEB-40CF-BB97-2FCBB0085215}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileControlUtility", "..\..\Library\FileControlUtility\FileControlUtility\FileControlUtility.csproj", "{67E7840B-0306-44EA-BBD6-641E388C3C9D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{960576ED-78BD-460D-9C5E-3E422329FA1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{960576ED-78BD-460D-9C5E-3E422329FA1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{960576ED-78BD-460D-9C5E-3E422329FA1B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6284BB33-ABEB-40CF-BB97-2FCBB0085215}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6284BB33-ABEB-40CF-BB97-2FCBB0085215}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6284BB33-ABEB-40CF-BB97-2FCBB0085215}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6284BB33-ABEB-40CF-BB97-2FCBB0085215}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67E7840B-0306-44EA-BBD6-641E388C3C9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67E7840B-0306-44EA-BBD6-641E388C3C9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67E7840B-0306-44EA-BBD6-641E388C3C9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67E7840B-0306-44EA-BBD6-641E388C3C9D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -82,7 +82,7 @@ namespace BackupHelper
 
                     foreach (string profileName in profileNames)
                     {
-                        Profile profile = profiles.Find(x => x.Name == profileName);
+                        Profile profile = profiles.Find(p => p.Name == profileName);
 
                         if (profile == null)
                         {
@@ -105,7 +105,16 @@ namespace BackupHelper
                         try
                         {
                             LogManager.WriteLine($"Working on profile \"{profileName}\"");
-                            profile.Options = DBAccess.ListProfileOptions(profile);
+                            profile.Options = DBAccess.ListProfileOptions(profile).OrderBy(o => o.ListViewIndex).ToList();
+
+                            foreach (Option o in profile.Options)
+                            {
+                                if (!o.AllowIgnoreFileExt) o.SpecifiedFileNamesAndExtensions.Clear(); //-- Names must be ignored
+                                o.SourcePath = Environment.ExpandEnvironmentVariables(o.SourcePath);
+                                o.DestinyPath = Environment.ExpandEnvironmentVariables(o.DestinyPath);
+                            }
+
+                            UpdateLastTimeExecuted(profile);
                             fileControl.ManageFiles(DBAccess.ListProfileOptions(profile).ToList<TransferSettings>());
                         }
                         catch (Exception e)
@@ -161,8 +170,7 @@ namespace BackupHelper
 
             foreach (Process process in Process.GetProcessesByName(currentProcess.ProcessName))
             {
-                if ((process.Id != currentProcess.Id) &&
-                    (process.MainModule.FileName == currentProcess.MainModule.FileName))
+                if ((process.Id != currentProcess.Id) && (process.MainModule.FileName == currentProcess.MainModule.FileName))
                     return true;
             }
 
@@ -173,16 +181,16 @@ namespace BackupHelper
         {
             profile.LastTimeModified = DateTime.Now;
             DBAccess.UpdateProfile(profile);
-            if(ProfileMenu != null) ProfileMenu.GetListViewItemById(profile.Id).SubItems[(int)ListViewProfileSubItemIndex.INDEX_TIME_MODIFIED].Text = 
-                profile.LastTimeModified.ToString();
+            if (ProfileMenu != null) ProfileMenu.GetListViewItemById(profile.Id).SubItems[(int)ListViewProfileSubItemIndex.INDEX_TIME_MODIFIED].Text =
+                 profile.LastTimeModified.ToString();
         }
 
         public static void UpdateLastTimeExecuted(Profile profile)
         {
             profile.LastTimeExecuted = DateTime.Now;
             DBAccess.UpdateProfile(profile);
-            if(ProfileMenu != null) ProfileMenu.GetListViewItemById(profile.Id).SubItems[(int)ListViewProfileSubItemIndex.INDEX_TIME_EXECUTED].Text = 
-                profile.LastTimeExecuted.ToString();
+            if (ProfileMenu != null) ProfileMenu.GetListViewItemById(profile.Id).SubItems[(int)ListViewProfileSubItemIndex.INDEX_TIME_EXECUTED].Text =
+                 profile.LastTimeExecuted.ToString();
         }
     }
 }

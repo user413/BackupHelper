@@ -18,8 +18,8 @@ namespace BackupHelper
         public static void AddProfile(Profile profile)
         {
             string insertProfileCmdText = "insert into profile(profile_listview_index,profile_name," +
-                "profile_time_created,profile_last_time_modified,profile_last_time_executed) " +
-                "values(@listviewIndex,@name,@timeCreated,@lastTimeModified,@lastTimeExecuted)";
+                "profile_time_created,profile_last_time_modified,profile_last_time_executed,profile_group) " +
+                "values(@listviewIndex,@name,@timeCreated,@lastTimeModified,@lastTimeExecuted,@profile_group)";
             string queryProfileLastInsertedIdCmdText = "select last_insert_rowid()";
             
             using (var insertProfileCmd = new SQLiteCommand(insertProfileCmdText, cn))
@@ -30,6 +30,7 @@ namespace BackupHelper
                 insertProfileCmd.Parameters.AddWithValue("@timeCreated", profile.TimeCreated);
                 insertProfileCmd.Parameters.AddWithValue("@lastTimeModified", profile.LastTimeModified);
                 insertProfileCmd.Parameters.AddWithValue("@lastTimeExecuted", profile.LastTimeExecuted);
+                insertProfileCmd.Parameters.AddWithValue("@profile_group", profile.GroupName);
 
                 insertProfileCmd.ExecuteNonQuery();
 
@@ -45,7 +46,7 @@ namespace BackupHelper
         {
             string updateProfileCmdText = "update profile set profile_listview_index=@listviewIndex," +
                 "profile_name=@name,profile_last_time_modified=@lastTimeModified," +
-                "profile_last_time_executed=@lastTimeExecuted where profile_id=@id";
+                "profile_last_time_executed=@lastTimeExecuted,profile_group=@profile_group where profile_id=@id";
             
             using (var updateProfileCmd = new SQLiteCommand(updateProfileCmdText, cn))
             {
@@ -54,6 +55,7 @@ namespace BackupHelper
                 updateProfileCmd.Parameters.AddWithValue("@name", profile.Name);
                 updateProfileCmd.Parameters.AddWithValue("@lastTimeModified", profile.LastTimeModified);
                 updateProfileCmd.Parameters.AddWithValue("@lastTimeExecuted", profile.LastTimeExecuted);
+                updateProfileCmd.Parameters.AddWithValue("@profile_group", profile.GroupName);
 
                 updateProfileCmd.ExecuteNonQuery();
             }
@@ -61,13 +63,14 @@ namespace BackupHelper
 
         public static void UpdateProfileListViewIndex(Profile profile)
         {
-            string updateProfileCmdText = "update profile set profile_listview_index=@listviewIndex " +
+            string updateProfileCmdText = "update profile set profile_listview_index=@listviewIndex,profile_group=@profile_group " +
                 "where profile_id=@id";
 
             using (var updateProfileCmd = new SQLiteCommand(updateProfileCmdText, cn))
             {
                 updateProfileCmd.Parameters.AddWithValue("@id", profile.Id);
                 updateProfileCmd.Parameters.AddWithValue("@listviewIndex", profile.ListViewIndex);
+                updateProfileCmd.Parameters.AddWithValue("@profile_group", profile.GroupName);
 
                 updateProfileCmd.ExecuteNonQuery();
             }
@@ -77,7 +80,7 @@ namespace BackupHelper
         {
             List<Profile> profiles = new List<Profile>();
             string queryProfileCmdText = "select profile_id,profile_listview_index,profile_name,profile_time_created," +
-                "profile_last_time_modified,profile_last_time_executed from profile;";
+                "profile_last_time_modified,profile_last_time_executed,profile_group from profile;";
 
             using (var queryProfileCmd = new SQLiteCommand(queryProfileCmdText, cn))
             {
@@ -92,7 +95,8 @@ namespace BackupHelper
                             Name = reader["profile_name"].ToString(),
                             TimeCreated = DateTime.Parse(reader["profile_time_created"].ToString()),
                             LastTimeModified = DateTime.Parse(reader["profile_last_time_modified"].ToString()),
-                            LastTimeExecuted = DateTime.Parse(reader["profile_last_time_executed"].ToString())
+                            LastTimeExecuted = DateTime.Parse(reader["profile_last_time_executed"].ToString()),
+                            GroupName = reader["profile_group"].ToString()
                         };
 
                         profiles.Add(prof);
@@ -265,8 +269,7 @@ namespace BackupHelper
                             DeleteUncommonFiles = Convert.ToBoolean(int.Parse(reader1["opt_delete_uncommon_files"].ToString())),
                             AllowIgnoreFileExt = Convert.ToBoolean(int.Parse(reader1["opt_allowignore_file_ext"].ToString())),
                             FileNameConflictMethod = (FileNameConflictMethod)int.Parse(reader1["opt_filename_conflict_method"].ToString()),
-                            SpecifiedFileNamesOrExtensionsMode = (SpecifiedFileNamesAndExtensionsMode)int.Parse(reader1["opt_spec_filenames_and_exts_mode"].ToString()),
-                            SpecifiedFileNamesAndExtensions = new List<string>()
+                            SpecifiedFileNamesOrExtensionsMode = (SpecifiedFileNamesAndExtensionsMode)int.Parse(reader1["opt_spec_filenames_and_exts_mode"].ToString())
                         };
 
                         querySpecifiedFilesAndExtsCmd.Parameters.AddWithValue("@optId", opt.Id);

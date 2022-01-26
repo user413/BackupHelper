@@ -30,21 +30,32 @@ namespace BackupHelper
         public FileControlImpl FileControl;
         private Thread ExecutionThread;
         private readonly FormCancelExecution CancelExecutionForm;
+
+        //-- Clicking/dragdrop functions
+        private System.Timers.Timer ClickTimer = new System.Timers.Timer(300);
+        private int MouseDownCount = 0;
+        private int MouseUpCount = 0;
+        private ListViewItem ClickedItem;
         //private bool OptionIsExecuting = false;
 
-        //--FORM RESIZING VARIABLES
-        private readonly int InitialFormHeight;
-        private readonly int InitialFormWidth;
-        private readonly int ListOptionHeight = 17;
-        private readonly int AditionalListViewItemCount = 6;
-        private readonly int InitialListViewItemCount = 10;
-        private readonly int MaximumListViewItemCount;        
+        ////--FORM RESIZING VARIABLES
+        //private readonly int InitialFormHeight;
+        //private readonly int InitialFormWidth;
+        //private readonly int ListOptionHeight = 17;
+        //private readonly int AditionalListViewItemCount = 6;
+        //private readonly int InitialListViewItemCount = 10;
+        //private readonly int MaximumListViewItemCount;
 
         public FormOptionsMenu(FormProfileMenu profileMenu, Profile profile)
         {
             //this.listViewOptions.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ContextMenuStripOptionsList_Click);
-
+            ClickTimer.Elapsed += ClickTimer_Elapsed;
+            ClickTimer.AutoReset = false;
             InitializeComponent();
+            listViewOptions.MouseDown += ListViewOptions_MouseDown;
+            listViewOptions.DragEnter += ListViewOptions_DragEnter;
+            listViewOptions.DragDrop += ListViewOptions_DragDrop;
+            listViewOptions.MouseUp += ListViewOptions_MouseUp;
 
             Profile = profile;
             ProfileMenu = profileMenu;
@@ -53,20 +64,122 @@ namespace BackupHelper
             if (profileMenu.LastReport != null)
                 buttonShowResult.Enabled = true;
 
-            InitialFormHeight = Bounds.Height;
-            InitialFormWidth = Bounds.Width;
-            AditionalListViewItemCount = 6;
-            InitialListViewItemCount = 10;
-            MaximumListViewItemCount = AditionalListViewItemCount + InitialListViewItemCount;
+            //InitialFormHeight = Bounds.Height;
+            //InitialFormWidth = Bounds.Width;
+            //AditionalListViewItemCount = 6;
+            //InitialListViewItemCount = 10;
+            //MaximumListViewItemCount = AditionalListViewItemCount + InitialListViewItemCount;
 
-            LoadListView();
+            ListOptions();
         }
 
-        private void LoadListView()
+        private void ListViewOptions_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left) return;
+            //if (listViewOptions.GetItemAt(e.X, e.Y) == null) return;
+            MouseUpCount++;
+        }
+
+        private void ClickTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            Invoke(new Action(() =>
+            {
+                //if (e.Button != MouseButtons.Left) return;
+                if (ClickedItem == null)
+                {
+                    MouseDownCount = 0;
+                    return;
+                }
+
+                if (MouseDownCount == 1)
+                {
+                    if (MouseUpCount > 0) return;
+                    List<ListViewItem> selectedItems = listViewOptions.SelectedItems.Cast<ListViewItem>().ToList();
+
+                    if (!selectedItems.Exists(i => i == ClickedItem))
+                        selectedItems = new List<ListViewItem>() { ClickedItem };
+
+                    listViewOptions.DoDragDrop(selectedItems, DragDropEffects.Move);
+                }
+                else
+                {
+                    EditSelectedOption();
+                }
+            }));
+        }
+
+        private void ListViewOptions_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left) return;
+
+            ListViewItem selected = listViewOptions.GetItemAt(e.X, e.Y);
+            if (selected == null) return;
+
+            if (!ClickTimer.Enabled)
+            {
+                MouseDownCount = 0;
+                MouseUpCount = 0;
+                ClickTimer.Start();
+                ClickedItem = selected;
+            }
+            else
+                if (selected != ClickedItem) ClickedItem = null;
+
+            MouseDownCount++;
+        }
+
+        private void ListViewOptions_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(typeof(List<ListViewItem>)))
+                e.Effect = DragDropEffects.Move;
+            else
+                e.Effect = DragDropEffects.None;
+        }
+
+        private void ListViewOptions_DragDrop(object sender, DragEventArgs args)
         {
             try
             {
-                Options = DBAccess.ListProfileOptions(Profile).OrderBy(x => x.ListViewIndex).ToList();
+                List<ListViewItem> selectedItems = (List<ListViewItem>)args.Data.GetData(typeof(List<ListViewItem>));
+                Point targetCoordinates = listViewOptions.PointToClient(new Point(args.X, args.Y));
+                ListViewItem targetItem = listViewOptions.GetItemAt(targetCoordinates.X, targetCoordinates.Y);
+
+                if (targetItem == null || selectedItems.Exists(i => i == targetItem) /*|| targetItem.Group != selectedItems[0].Group*/) return;
+
+                bool indexIsBehind = selectedItems.Last().Index < targetItem.Index;
+
+                try
+                {
+                    foreach (ListViewItem i in selectedItems)
+                    {
+                        listViewOptions.Items.Remove(i);
+                        i.Group = targetItem.Group;
+                    }
+
+                    for (int i = 0; i < selectedItems.Count; i++)
+                        listViewOptions.Items.Insert(indexIsBehind ? targetItem.Index + 1 + i : targetItem.Index, selectedItems[i]);
+
+                    //-- Due to a bug / makes items appear in the correct listview positions
+                    //string tempGName = targetItem.Group.Header;
+                    //targetItem.Group.Header = "tmp";
+                    //targetItem.Group.Header = tempGName;
+                }
+                finally
+                {
+                    UpdateOptionListViewIndexes();
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
+
+        private void ListOptions()
+        {
+            try
+            {
+                Options = DBAccess.ListProfileOptions(Profile).OrderBy(o => o.ListViewIndex).ToList();
 
                 foreach (Option option in Options)
                 {
@@ -75,7 +188,7 @@ namespace BackupHelper
                     listViewOptions.Items.Add(item);
                 }
 
-                ResizeForm();
+                //ResizeForm();
             }
             catch (Exception e)
             {
@@ -87,36 +200,26 @@ namespace BackupHelper
         {
             foreach (ListViewItem item in listViewOptions.Items)
             {
-                Option option = Options.Find(x => x.Id == int.Parse(item.Tag.ToString()));
-                int currentIndex = option.ListViewIndex;
-                try
+                Option option = Options.Find(o => o.Id == (int)item.Tag);
+
+                if (option.ListViewIndex != item.Index)
                 {
                     option.ListViewIndex = item.Index;
                     DBAccess.UpdateOptionListViewIndex(option);
                 }
-                catch (Exception)
-                {
-                    try
-                    {
-                        option.ListViewIndex = currentIndex;
-                        DBAccess.UpdateOptionListViewIndex(option);
-                    }
-                    catch (Exception) {}
-                    throw;
-                }
             }
         }
 
-        public void ResizeForm()
-        {
-            //CHANGING FORM HEIGHT RESPONSIVELY DEPENDING ON NUMBER OF OPTIONS
-            if (Options.Count() > InitialListViewItemCount && Options.Count() < MaximumListViewItemCount)
-                Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight + (Options.Count() - InitialListViewItemCount) * ListOptionHeight);
-            else if (Options.Count() >= MaximumListViewItemCount)
-                Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight + (ListOptionHeight * AditionalListViewItemCount));
-            else if (Bounds.Height != InitialFormHeight)
-                Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight);
-        }
+        //public void ResizeForm()
+        //{
+        //    //CHANGING FORM HEIGHT RESPONSIVELY DEPENDING ON NUMBER OF OPTIONS
+        //    if (Options.Count() > InitialListViewItemCount && Options.Count() < MaximumListViewItemCount)
+        //        Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight + (Options.Count() - InitialListViewItemCount) * ListOptionHeight);
+        //    else if (Options.Count() >= MaximumListViewItemCount)
+        //        Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight + (ListOptionHeight * AditionalListViewItemCount));
+        //    else if (Bounds.Height != InitialFormHeight)
+        //        Size = new System.Drawing.Size(InitialFormWidth, InitialFormHeight);
+        //}
 
         private void ButtonAddOption_Click(object sender, EventArgs args)
         {
@@ -136,7 +239,7 @@ namespace BackupHelper
             try
             {
                 ListViewItem item = listViewOptions.SelectedItems[0];
-                Option option = Options.Find(x => x.Id == int.Parse(item.Tag.ToString()));
+                Option option = Options.Find(o => o.Id == (int)item.Tag);
                 FormEditOption edit = new FormEditOption(this, option);
                 edit.Show(this);
             }
@@ -176,7 +279,8 @@ namespace BackupHelper
         private ListViewItem GetListViewItemById(int id)
         {
             foreach (ListViewItem item in listViewOptions.Items)
-                if (int.Parse(item.Tag.ToString()) == id) return item;
+                if ((int)item.Tag == id) return item;
+
             return null;
         }
 
@@ -214,16 +318,16 @@ namespace BackupHelper
             try
             {
                 ListViewItem selectedItem = listViewOptions.SelectedItems[0];
-                string text = "Delete selected option?";
-                if (MessageBox.Show(text, "", MessageBoxButtons.OKCancel) == DialogResult.OK)
+
+                if (MessageBox.Show("Delete selected option?", "", MessageBoxButtons.OKCancel) == DialogResult.OK)
                 {
-                    var option = Options.Find(x => x.Id == int.Parse(selectedItem.Tag.ToString()));
+                    var option = Options.Find(o => o.Id == (int)selectedItem.Tag);
                     DBAccess.DeleteOption(option);
                     Options.Remove(option);
                     selectedItem.Remove();
                     Program.UpdateLastTimeModified(Profile);
                     UpdateOptionListViewIndexes();
-                    ResizeForm();
+                    //ResizeForm();
                 }
             }
             catch (ArgumentOutOfRangeException)
@@ -235,6 +339,7 @@ namespace BackupHelper
                 MessageBox.Show(e.Message);
             }
         }
+
         private void ButtonExecute_Click(object sender, EventArgs args)
         {
             try
@@ -246,20 +351,7 @@ namespace BackupHelper
                 }
 
                 FileControl = new FileControlImpl(this);
-
-                try
-                {
-                    progressBarOptions.Maximum = FileControl.FilesTotal(Options.ToList<TransferSettings>());
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Show($"{e.Message}{Environment.NewLine}Transfer canceled.");
-                    return;
-                }
-
-                Options = Options.OrderBy(x => x.ListViewIndex).ToList();
-
-                Program.UpdateLastTimeExecuted(Profile);
+                progressBarOptions.Maximum = FileControl.FilesTotal(Options.ToList<TransferSettings>());
 
                 //this.OptionIsExecuting = true;
                 LogManager.BeginWritter();
@@ -275,17 +367,22 @@ namespace BackupHelper
                 labelTransfering.Visible = true;
                 textBoxTransfering.Visible = true;
                 buttonCancel.Visible = true;
-                labelMoveOption.Visible = false;
-                labelMoveOptionDown.Visible = false;
-                labelMoveOptionUp.Visible = false;
                 buttonCancel.BackColor = Color.FromArgb(255, 128, 128);
+
+                List<Option> options = Options.OrderBy(o => o.ListViewIndex).Select(o => o.Clone()).ToList();
+                foreach (Option o in options)
+                {
+                    if (!o.AllowIgnoreFileExt) o.SpecifiedFileNamesAndExtensions.Clear(); //-- Names must be ignored
+                    o.SourcePath = Environment.ExpandEnvironmentVariables(o.SourcePath);
+                    o.DestinyPath = Environment.ExpandEnvironmentVariables(o.DestinyPath);
+                }
+
+                Program.UpdateLastTimeExecuted(Profile);
 
                 ExecutionThread = new Thread(() =>
                 {
                     try
                     {
-                        List<Option> options = Options.ToList();
-                        options.ForEach(o => o.SpecifiedFileNamesAndExtensions = o.AllowIgnoreFileExt ? o.SpecifiedFileNamesAndExtensions : new List<string>());
                         FileControl.ManageFiles(options.ToList<TransferSettings>());
                     }
                     catch (Exception e)
@@ -310,9 +407,6 @@ namespace BackupHelper
                         buttonExecute.Visible = true;
                         checkBoxShowResult.Visible = true;
                         buttonShowResult.Visible = true;
-                        labelMoveOption.Visible = true;
-                        labelMoveOptionDown.Visible = true;
-                        labelMoveOptionUp.Visible = true;
                         //this.OptionIsExecuting = false;
                         buttonShowResult.Enabled = true;
                         Enabled = true;
@@ -363,7 +457,7 @@ namespace BackupHelper
 
         private void ContextMenuStripOptionsList_Opening(object sender, CancelEventArgs args)
         {
-            if (listViewOptions.SelectedItems.Count <= 0) args.Cancel = true;
+            if (listViewOptions.SelectedItems.Count != 1) args.Cancel = true;
         }
 
         private void ToolStripMenuItemCopySourcePath_Click(object sender, EventArgs e)
@@ -378,18 +472,19 @@ namespace BackupHelper
 
         private void ToolStripMenuItemOpenSourceFolder_Click(object sender, EventArgs e)
         {
-            OpenFolder(listViewOptions.SelectedItems[0].Text);
+            OpenFolder(Environment.ExpandEnvironmentVariables(listViewOptions.SelectedItems[0].Text));
         }
 
         private void ToolStripMenuItemOpenDestinyFolder_Click(object sender, EventArgs e)
         {
-            OpenFolder(listViewOptions.SelectedItems[0].SubItems[(int)ListViewOptionSubItemIndex.INDEX_DESTINY_PATH].Text);
+            OpenFolder(Environment.ExpandEnvironmentVariables(
+                listViewOptions.SelectedItems[0].SubItems[(int)ListViewOptionSubItemIndex.INDEX_DESTINY_PATH].Text));
         }
 
-        private void ListViewOptionsMenu_DoubleClick(object sender, EventArgs args)
-        {
-            EditSelectedOption();
-        }
+        //private void ListViewOptions_DoubleClick(object sender, EventArgs args)
+        //{
+        //    EditSelectedOption();
+        //}
 
         private void ListViewOptions_KeyPress(object sender, KeyEventArgs args)
         {
@@ -399,7 +494,7 @@ namespace BackupHelper
             }
             else if (args.KeyCode == Keys.Enter)
             {
-                if(listViewOptions.SelectedItems.Count > 0) EditSelectedOption();
+                if (listViewOptions.SelectedItems.Count > 0) EditSelectedOption();
             }
         }
 
@@ -433,116 +528,116 @@ namespace BackupHelper
                 ProfileMenu.LastReport.Show();
         }
 
-        private void LabelMoveOptionUp_Click(object sender, EventArgs args)
-        {
-            try
-            {
-                if (listViewOptions.SelectedItems[0].Index == 0) return;
+        //private void LabelMoveOptionUp_Click(object sender, EventArgs args)
+        //{
+        //    try
+        //    {
+        //        if (listViewOptions.SelectedItems[0].Index == 0) return;
 
-                ListViewItem selectedItem = listViewOptions.SelectedItems[0];
-                ListViewItem previousItem = listViewOptions.Items[selectedItem.Index - 1];
-                int selectedItemIndex = selectedItem.Index;
-                int previousItemIndex = previousItem.Index;
+        //        ListViewItem selectedItem = listViewOptions.SelectedItems[0];
+        //        ListViewItem previousItem = listViewOptions.Items[selectedItem.Index - 1];
+        //        int selectedItemIndex = selectedItem.Index;
+        //        int previousItemIndex = previousItem.Index;
 
-                Option selectedOption = null;
-                Option previousOption = null;
+        //        Option selectedOption = null;
+        //        Option previousOption = null;
 
-                try
-                {
-                    selectedOption = Options.Find(x => x.Id == int.Parse(selectedItem.Tag.ToString()));
-                    selectedOption.ListViewIndex = previousItemIndex;
-                    DBAccess.UpdateOptionListViewIndex(selectedOption);
+        //        try
+        //        {
+        //            selectedOption = Options.Find(x => x.Id == (int)selectedItem.Tag);
+        //            selectedOption.ListViewIndex = previousItemIndex;
+        //            DBAccess.UpdateOptionListViewIndex(selectedOption);
 
-                    previousOption = Options.Find(x => x.Id == int.Parse(previousItem.Tag.ToString()));
-                    previousOption.ListViewIndex = selectedItemIndex;
-                    DBAccess.UpdateOptionListViewIndex(previousOption);
+        //            previousOption = Options.Find(x => x.Id == (int)previousItem.Tag);
+        //            previousOption.ListViewIndex = selectedItemIndex;
+        //            DBAccess.UpdateOptionListViewIndex(previousOption);
 
-                }
-                catch (Exception)
-                {
-                    try
-                    {
-                        selectedOption.ListViewIndex = selectedItemIndex;
-                        previousOption.ListViewIndex = previousItemIndex;
-                        DBAccess.UpdateOptionListViewIndex(selectedOption);
-                        DBAccess.UpdateOptionListViewIndex(previousOption);
-                    }
-                    catch (Exception) { }
-                    throw;
-                }
+        //        }
+        //        catch (Exception)
+        //        {
+        //            try
+        //            {
+        //                selectedOption.ListViewIndex = selectedItemIndex;
+        //                previousOption.ListViewIndex = previousItemIndex;
+        //                DBAccess.UpdateOptionListViewIndex(selectedOption);
+        //                DBAccess.UpdateOptionListViewIndex(previousOption);
+        //            }
+        //            catch (Exception) { }
+        //            throw;
+        //        }
 
-                ListViewItem selectedItemClone = (ListViewItem)selectedItem.Clone();
-                ListViewItem previousItemClone = (ListViewItem)previousItem.Clone();
+        //        ListViewItem selectedItemClone = (ListViewItem)selectedItem.Clone();
+        //        ListViewItem previousItemClone = (ListViewItem)previousItem.Clone();
 
-                listViewOptions.Items[selectedItemIndex] = previousItemClone;
-                listViewOptions.Items[previousItemIndex] = selectedItemClone;
+        //        listViewOptions.Items[selectedItemIndex] = previousItemClone;
+        //        listViewOptions.Items[previousItemIndex] = selectedItemClone;
                 
-                listViewOptions.Items[previousItemIndex].Selected = true;
-            }
-            catch (ArgumentOutOfRangeException) { }
-            catch (Exception e) { 
-                MessageBox.Show(e.Message);
-            }
-        }
+        //        listViewOptions.Items[previousItemIndex].Selected = true;
+        //    }
+        //    catch (ArgumentOutOfRangeException) { }
+        //    catch (Exception e) { 
+        //        MessageBox.Show(e.Message);
+        //    }
+        //}
 
-        private void LabelMoveOptionDown_Click(object sender, EventArgs args)
-        {
-            try
-            {
-                if (listViewOptions.SelectedItems[0].Index == listViewOptions.Items.Count - 1) return;
+        //private void LabelMoveOptionDown_Click(object sender, EventArgs args)
+        //{
+        //    try
+        //    {
+        //        if (listViewOptions.SelectedItems[0].Index == listViewOptions.Items.Count - 1) return;
 
-                ListViewItem selectedItem = listViewOptions.SelectedItems[0];
-                ListViewItem nextItem = listViewOptions.Items[selectedItem.Index + 1];
-                int selectedItemIndex = selectedItem.Index;
-                int nextItemIndex = nextItem.Index;
+        //        ListViewItem selectedItem = listViewOptions.SelectedItems[0];
+        //        ListViewItem nextItem = listViewOptions.Items[selectedItem.Index + 1];
+        //        int selectedItemIndex = selectedItem.Index;
+        //        int nextItemIndex = nextItem.Index;
 
-                Option selectedOption = null;
-                Option nextOption = null;
+        //        Option selectedOption = null;
+        //        Option nextOption = null;
 
-                try
-                {
-                    selectedOption = Options.Find(x => x.Id == int.Parse(selectedItem.Tag.ToString()));
-                    selectedOption.ListViewIndex = nextItemIndex;
-                    DBAccess.UpdateOptionListViewIndex(selectedOption);
+        //        try
+        //        {
+        //            selectedOption = Options.Find(x => x.Id == int.Parse(selectedItem.Tag.ToString()));
+        //            selectedOption.ListViewIndex = nextItemIndex;
+        //            DBAccess.UpdateOptionListViewIndex(selectedOption);
 
-                    nextOption = Options.Find(x => x.Id == int.Parse(nextItem.Tag.ToString()));
-                    nextOption.ListViewIndex = selectedItemIndex;
-                    DBAccess.UpdateOptionListViewIndex(nextOption);
-                }
-                catch (Exception)
-                {
-                    try
-                    {
-                        selectedOption.ListViewIndex = selectedItemIndex;
-                        nextOption.ListViewIndex = nextItemIndex;
-                        DBAccess.UpdateOptionListViewIndex(selectedOption);
-                        DBAccess.UpdateOptionListViewIndex(nextOption);
-                    }
-                    catch (Exception) {}
-                    throw;
-                }
+        //            nextOption = Options.Find(x => x.Id == int.Parse(nextItem.Tag.ToString()));
+        //            nextOption.ListViewIndex = selectedItemIndex;
+        //            DBAccess.UpdateOptionListViewIndex(nextOption);
+        //        }
+        //        catch (Exception)
+        //        {
+        //            try
+        //            {
+        //                selectedOption.ListViewIndex = selectedItemIndex;
+        //                nextOption.ListViewIndex = nextItemIndex;
+        //                DBAccess.UpdateOptionListViewIndex(selectedOption);
+        //                DBAccess.UpdateOptionListViewIndex(nextOption);
+        //            }
+        //            }
+        //            catch (Exception) {}
+        //            throw;
+        //        }
 
-                ListViewItem selectedItemClone = (ListViewItem)selectedItem.Clone();
-                ListViewItem nextItemClone = (ListViewItem)nextItem.Clone();
+        //        ListViewItem selectedItemClone = (ListViewItem)selectedItem.Clone();
+        //        ListViewItem nextItemClone = (ListViewItem)nextItem.Clone();
 
-                listViewOptions.Items[selectedItemIndex] = nextItemClone;
-                listViewOptions.Items[nextItemIndex] = selectedItemClone;
+        //        listViewOptions.Items[selectedItemIndex] = nextItemClone;
+        //        listViewOptions.Items[nextItemIndex] = selectedItemClone;
 
-                listViewOptions.Items[nextItemIndex].Selected = true;
-            }
-            catch (ArgumentOutOfRangeException) {}
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
-        }
+        //        listViewOptions.Items[nextItemIndex].Selected = true;
+        //    }
+        //    catch (ArgumentOutOfRangeException) {}
+        //    catch (Exception e)
+        //    {
+        //        MessageBox.Show(e.Message);
+        //    }
+        //}
 
         private void CloneOptionToolStripMenuItem_Click(object sender, EventArgs args)
         {
             try
             {
-                Option selectedOption = Options.Find(
-                       x => x.Id == int.Parse(listViewOptions.SelectedItems[0].Tag.ToString()));
+                Option selectedOption = Options.Find(o => o.Id == (int)listViewOptions.SelectedItems[0].Tag);
 
                 Option clonedOption = selectedOption.Clone();
                 clonedOption.ListViewIndex = listViewOptions.Items.Count;
@@ -552,7 +647,7 @@ namespace BackupHelper
                 ListViewItem item = new ListViewItem();
                 EditListViewItem(clonedOption, item);
                 listViewOptions.Items.Add(item);
-                ResizeForm();
+                //ResizeForm();
             }
             catch (Exception e)
             {

@@ -12,10 +12,11 @@ namespace BackupHelper.model
         public DateTime LastTimeModified { get; set; }
         public DateTime LastTimeExecuted { get; set; }
         public List<Option> Options { get; set; }
+        public string GroupName { get; set; } = "Ungrouped";
 
         public Profile Clone()
         {
-            return (Profile)this.MemberwiseClone();
+            return (Profile)MemberwiseClone();
         }
     }
 }

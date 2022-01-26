@@ -39,7 +39,7 @@ namespace BackupHelper
             this.columnHeaderMoveSubfolders = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderKeepOrigin = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderCleanDestinyDir = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderDeleteCommonFiles = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderDeleteUncommonFiles = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStripOptionsList = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.cloneOptionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ToolStripMenuItemRemove = new System.Windows.Forms.ToolStripMenuItem();
@@ -54,9 +54,6 @@ namespace BackupHelper
             this.textBoxTransfering = new System.Windows.Forms.TextBox();
             this.buttonShowResult = new System.Windows.Forms.Button();
             this.checkBoxShowResult = new System.Windows.Forms.CheckBox();
-            this.labelMoveOption = new System.Windows.Forms.Label();
-            this.labelMoveOptionUp = new System.Windows.Forms.Label();
-            this.labelMoveOptionDown = new System.Windows.Forms.Label();
             this.contextMenuStripOptionsList.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -73,8 +70,10 @@ namespace BackupHelper
             // 
             // listViewOptions
             // 
-            this.listViewOptions.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
+            this.listViewOptions.AllowDrop = true;
+            this.listViewOptions.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.listViewOptions.BackColor = System.Drawing.SystemColors.Window;
             this.listViewOptions.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeaderSourcePath,
@@ -83,57 +82,55 @@ namespace BackupHelper
             this.columnHeaderMoveSubfolders,
             this.columnHeaderKeepOrigin,
             this.columnHeaderCleanDestinyDir,
-            this.columnHeaderDeleteCommonFiles});
+            this.columnHeaderDeleteUncommonFiles});
             this.listViewOptions.ContextMenuStrip = this.contextMenuStripOptionsList;
             this.listViewOptions.FullRowSelect = true;
             this.listViewOptions.GridLines = true;
             this.listViewOptions.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this.listViewOptions.HideSelection = false;
             this.listViewOptions.Location = new System.Drawing.Point(0, 0);
-            this.listViewOptions.MultiSelect = false;
             this.listViewOptions.Name = "listViewOptions";
             this.listViewOptions.ShowItemToolTips = true;
-            this.listViewOptions.Size = new System.Drawing.Size(980, 224);
+            this.listViewOptions.Size = new System.Drawing.Size(1072, 224);
             this.listViewOptions.TabIndex = 0;
             this.listViewOptions.UseCompatibleStateImageBehavior = false;
             this.listViewOptions.View = System.Windows.Forms.View.Details;
-            this.listViewOptions.DoubleClick += new System.EventHandler(this.ListViewOptionsMenu_DoubleClick);
             this.listViewOptions.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ListViewOptions_KeyPress);
             // 
             // columnHeaderSourcePath
             // 
             this.columnHeaderSourcePath.Text = "Source Path";
-            this.columnHeaderSourcePath.Width = 281;
+            this.columnHeaderSourcePath.Width = 290;
             // 
             // columnHeaderDestinyPath
             // 
             this.columnHeaderDestinyPath.Text = "Destiny Path";
-            this.columnHeaderDestinyPath.Width = 274;
+            this.columnHeaderDestinyPath.Width = 290;
             // 
             // columnHeaderMethod
             // 
             this.columnHeaderMethod.Text = "Filename Conflict Opt.";
-            this.columnHeaderMethod.Width = 129;
+            this.columnHeaderMethod.Width = 175;
             // 
             // columnHeaderMoveSubfolders
             // 
             this.columnHeaderMoveSubfolders.Text = "Move Subfolders";
-            this.columnHeaderMoveSubfolders.Width = 73;
+            this.columnHeaderMoveSubfolders.Width = 75;
             // 
             // columnHeaderKeepOrigin
             // 
             this.columnHeaderKeepOrigin.Text = "Keep Origin Files";
-            this.columnHeaderKeepOrigin.Width = 73;
+            this.columnHeaderKeepOrigin.Width = 75;
             // 
             // columnHeaderCleanDestinyDir
             // 
             this.columnHeaderCleanDestinyDir.Text = "Clean Dest. Dir.";
-            this.columnHeaderCleanDestinyDir.Width = 73;
+            this.columnHeaderCleanDestinyDir.Width = 75;
             // 
-            // columnHeaderDeleteCommonFiles
+            // columnHeaderDeleteUncommonFiles
             // 
-            this.columnHeaderDeleteCommonFiles.Text = "Del. Common Files";
-            this.columnHeaderDeleteCommonFiles.Width = 73;
+            this.columnHeaderDeleteUncommonFiles.Text = "Del. Uncommon Files";
+            this.columnHeaderDeleteUncommonFiles.Width = 75;
             // 
             // contextMenuStripOptionsList
             // 
@@ -206,22 +203,23 @@ namespace BackupHelper
             // 
             // progressBarOptions
             // 
-            this.progressBarOptions.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.progressBarOptions.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.progressBarOptions.Enabled = false;
-            this.progressBarOptions.Location = new System.Drawing.Point(0, 254);
+            this.progressBarOptions.Location = new System.Drawing.Point(0, 252);
             this.progressBarOptions.Maximum = 10000;
             this.progressBarOptions.Name = "progressBarOptions";
-            this.progressBarOptions.Size = new System.Drawing.Size(980, 10);
+            this.progressBarOptions.Size = new System.Drawing.Size(1072, 12);
             this.progressBarOptions.TabIndex = 4;
             // 
             // buttonCancel
             // 
-            this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonCancel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
             this.buttonCancel.FlatAppearance.BorderColor = System.Drawing.Color.Red;
             this.buttonCancel.FlatAppearance.BorderSize = 2;
             this.buttonCancel.ForeColor = System.Drawing.Color.White;
-            this.buttonCancel.Location = new System.Drawing.Point(885, 224);
+            this.buttonCancel.Location = new System.Drawing.Point(977, 224);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(95, 30);
             this.buttonCancel.TabIndex = 8;
@@ -243,14 +241,15 @@ namespace BackupHelper
             // 
             // textBoxTransfering
             // 
-            this.textBoxTransfering.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.textBoxTransfering.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxTransfering.BackColor = System.Drawing.SystemColors.Control;
             this.textBoxTransfering.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.textBoxTransfering.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBoxTransfering.Location = new System.Drawing.Point(85, 233);
             this.textBoxTransfering.Name = "textBoxTransfering";
             this.textBoxTransfering.ReadOnly = true;
-            this.textBoxTransfering.Size = new System.Drawing.Size(784, 13);
+            this.textBoxTransfering.Size = new System.Drawing.Size(873, 13);
             this.textBoxTransfering.TabIndex = 7;
             this.textBoxTransfering.Visible = false;
             // 
@@ -258,7 +257,7 @@ namespace BackupHelper
             // 
             this.buttonShowResult.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonShowResult.Enabled = false;
-            this.buttonShowResult.Location = new System.Drawing.Point(872, 224);
+            this.buttonShowResult.Location = new System.Drawing.Point(964, 224);
             this.buttonShowResult.Name = "buttonShowResult";
             this.buttonShowResult.Size = new System.Drawing.Size(108, 30);
             this.buttonShowResult.TabIndex = 8;
@@ -272,73 +271,30 @@ namespace BackupHelper
             this.checkBoxShowResult.AutoSize = true;
             this.checkBoxShowResult.Checked = true;
             this.checkBoxShowResult.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxShowResult.Location = new System.Drawing.Point(729, 232);
+            this.checkBoxShowResult.Location = new System.Drawing.Point(821, 232);
             this.checkBoxShowResult.Name = "checkBoxShowResult";
             this.checkBoxShowResult.Size = new System.Drawing.Size(137, 17);
             this.checkBoxShowResult.TabIndex = 7;
             this.checkBoxShowResult.Text = "Show result when done";
             this.checkBoxShowResult.UseVisualStyleBackColor = true;
             // 
-            // labelMoveOption
-            // 
-            this.labelMoveOption.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.labelMoveOption.AutoSize = true;
-            this.labelMoveOption.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelMoveOption.Location = new System.Drawing.Point(206, 232);
-            this.labelMoveOption.Name = "labelMoveOption";
-            this.labelMoveOption.Size = new System.Drawing.Size(115, 13);
-            this.labelMoveOption.TabIndex = 9;
-            this.labelMoveOption.Text = "Move Selected Option:";
-            // 
-            // labelMoveOptionUp
-            // 
-            this.labelMoveOptionUp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.labelMoveOptionUp.AutoSize = true;
-            this.labelMoveOptionUp.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.labelMoveOptionUp.Font = new System.Drawing.Font("Impact", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelMoveOptionUp.ForeColor = System.Drawing.Color.DarkGreen;
-            this.labelMoveOptionUp.Location = new System.Drawing.Point(323, 226);
-            this.labelMoveOptionUp.Name = "labelMoveOptionUp";
-            this.labelMoveOptionUp.Size = new System.Drawing.Size(25, 25);
-            this.labelMoveOptionUp.TabIndex = 5;
-            this.labelMoveOptionUp.Text = "˄";
-            this.labelMoveOptionUp.Click += new System.EventHandler(this.LabelMoveOptionUp_Click);
-            // 
-            // labelMoveOptionDown
-            // 
-            this.labelMoveOptionDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.labelMoveOptionDown.AutoSize = true;
-            this.labelMoveOptionDown.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.labelMoveOptionDown.Font = new System.Drawing.Font("Impact", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelMoveOptionDown.ForeColor = System.Drawing.Color.DarkGreen;
-            this.labelMoveOptionDown.Location = new System.Drawing.Point(349, 226);
-            this.labelMoveOptionDown.Name = "labelMoveOptionDown";
-            this.labelMoveOptionDown.Size = new System.Drawing.Size(25, 25);
-            this.labelMoveOptionDown.TabIndex = 6;
-            this.labelMoveOptionDown.Text = "˅";
-            this.labelMoveOptionDown.Click += new System.EventHandler(this.LabelMoveOptionDown_Click);
-            // 
             // FormOptionsMenu
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(980, 261);
-            this.Controls.Add(this.labelMoveOptionDown);
-            this.Controls.Add(this.labelMoveOptionUp);
-            this.Controls.Add(this.labelMoveOption);
+            this.ClientSize = new System.Drawing.Size(1072, 261);
             this.Controls.Add(this.checkBoxShowResult);
-            this.Controls.Add(this.buttonShowResult);
             this.Controls.Add(this.textBoxTransfering);
             this.Controls.Add(this.labelTransfering);
-            this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.progressBarOptions);
             this.Controls.Add(this.buttonExecute);
             this.Controls.Add(this.listViewOptions);
             this.Controls.Add(this.buttonAddOption);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
+            this.Controls.Add(this.buttonShowResult);
+            this.Controls.Add(this.buttonCancel);
             this.Name = "FormOptionsMenu";
+            this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Options - Backup Helper";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormOptionsMenu_FormClosing);
@@ -369,10 +325,7 @@ namespace BackupHelper
         private System.Windows.Forms.CheckBox checkBoxShowResult;
         private System.Windows.Forms.ToolStripMenuItem openSourceFolderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openDestinyFolderToolStripMenuItem;
-        private System.Windows.Forms.ColumnHeader columnHeaderDeleteCommonFiles;
-        private System.Windows.Forms.Label labelMoveOption;
-        private System.Windows.Forms.Label labelMoveOptionUp;
-        private System.Windows.Forms.Label labelMoveOptionDown;
+        private System.Windows.Forms.ColumnHeader columnHeaderDeleteUncommonFiles;
         private System.Windows.Forms.ToolStripMenuItem cloneOptionToolStripMenuItem;
         public ListView listViewOptions;
         private ToolStripMenuItem ToolStripMenuItemRemove;

@@ -7,10 +7,7 @@ namespace BackupHelper
 {
     public partial class FormEditProfile : Form
     {
-        private enum FormEditProfileAction
-        {
-            ADD, EDIT
-        }
+        private enum FormEditProfileAction { ADD, EDIT }
 
         private readonly Profile Profile;
         private readonly FormProfileMenu ProfileMenu;
@@ -61,7 +58,7 @@ namespace BackupHelper
                 return;
             }
 
-            if (ProfileMenu.Profiles.Find(x => x.Name == textBoxProfileName.Text) != null)
+            if (ProfileMenu.Profiles.Exists(p => p.Name == textBoxProfileName.Text))
             {
                 MessageBox.Show("Name already exists.");
                 return;
@@ -98,12 +95,12 @@ namespace BackupHelper
             ListViewItem item = new ListViewItem();
             ProfileMenu.EditListViewItem(profile, item);
             ProfileMenu.listViewProfile.Items.Add(item);
-            ProfileMenu.ResizeForm();
+            //ProfileMenu.ResizeForm();
         }
 
         private void EditProfileName()
         {
-            this.Profile.Name = textBoxProfileName.Text;
+            Profile.Name = textBoxProfileName.Text;
             DBAccess.UpdateProfile(Profile);
             ProfileMenu.EditListViewItem(Profile);
         }
@@ -113,7 +110,7 @@ namespace BackupHelper
             if (e.KeyCode == Keys.Enter)
                 SaveProfile();
             else if (e.KeyCode == Keys.Escape)
-                this.Close();
+                Close();
         }
 
         private bool TextContainsInvalidCharacters(string text)

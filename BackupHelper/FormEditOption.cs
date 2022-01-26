@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace BackupHelper
@@ -28,12 +29,12 @@ namespace BackupHelper
             if (option != null)
             {
                 FormAction = FormAction.EDIT;
-                this.Option = option;
+                Option = option;
                 FillCamps(option);
             }
             else
             {
-                this.Text = "Add option";
+                Text = "Add option";
 
                 FillCamps(new Option {
                     SourcePath = "C:\\origin...",
@@ -43,13 +44,12 @@ namespace BackupHelper
                     KeepOriginFiles = true,
                     CleanDestinyDirectory = false,
                     AllowIgnoreFileExt = false,
-                    DeleteUncommonFiles = false,
-                    SpecifiedFileNamesAndExtensions = new List<string>()
+                    DeleteUncommonFiles = false
                 });
             }
 
-            this.KeyDown += new KeyEventHandler(this.FormEditOption_KeyDown);
-            this.KeyPreview = true;
+            KeyDown += new KeyEventHandler(FormEditOption_KeyDown);
+            KeyPreview = true;
         }
 
         private void FillCamps(Option option)
@@ -70,15 +70,10 @@ namespace BackupHelper
                 checkBoxCleanDestinyDirectory.Checked = option.CleanDestinyDirectory;
                 checkBoxDeleteUncommonFiles.Checked = option.DeleteUncommonFiles;
                 checkBoxManageFileNamesAndExtensions.Checked = option.AllowIgnoreFileExt;
-
-                if (option.SpecifiedFileNamesOrExtensionsMode == SpecifiedFileNamesAndExtensionsMode.IGNORE)
-                    radioButtonIgnore.Checked = true;
+                radioButtonIgnore.Checked = option.SpecifiedFileNamesOrExtensionsMode == SpecifiedFileNamesAndExtensionsMode.IGNORE;
 
                 foreach (string txt in option.SpecifiedFileNamesAndExtensions)
-                {
-                    ListViewItem item = new ListViewItem(txt);
-                    listViewFileNamesAndExtensions.Items.Add(item);
-                }
+                    listViewFileNamesAndExtensions.Items.Add(new ListViewItem(txt));
             }
             catch (Exception e)
             {
@@ -113,7 +108,7 @@ namespace BackupHelper
                     ListViewItem item = new ListViewItem();
                     OptionsMenu.EditListViewItem(editedOption,item);
                     OptionsMenu.listViewOptions.Items.Add(item);
-                    OptionsMenu.ResizeForm();
+                    //OptionsMenu.ResizeForm();
                 }
                 else
                 {
@@ -196,18 +191,18 @@ namespace BackupHelper
             editedOption.CleanDestinyDirectory = checkBoxCleanDestinyDirectory.Checked;
             editedOption.DeleteUncommonFiles = checkBoxDeleteUncommonFiles.Checked;
             editedOption.AllowIgnoreFileExt = checkBoxManageFileNamesAndExtensions.Checked;
-            editedOption.SpecifiedFileNamesAndExtensions = ListViewFileExtensionsToList();
+            editedOption.SpecifiedFileNamesAndExtensions = listViewFileNamesAndExtensions.Items.Cast<ListViewItem>().Select(i => i.Text).ToList();
         }
 
-        private List<string> ListViewFileExtensionsToList()
-        {
-            List<string> extensions = new List<string>();
+        //private List<string> ListViewFileExtensionsToList()
+        //{
+        //    List<string> extensions = new List<string>();
 
-            foreach(ListViewItem item in listViewFileNamesAndExtensions.Items)
-                extensions.Add(item.Text);
+        //    foreach(ListViewItem item in listViewFileNamesAndExtensions.Items)
+        //        extensions.Add(item.Text);
 
-            return extensions;
-        }
+        //    return extensions;
+        //}
 
         private void ButtonAddSource_Click(object sender, EventArgs e)
         {

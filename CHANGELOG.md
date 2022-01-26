@@ -1,3 +1,12 @@
+## 1.2.0
+
+Database not compatible with previous version
+
+New features:
+- Source and destiny paths can contain environment variables
+- Profile grouping
+- Drag and drop reordering
+
 ## 1.1.2
 
 Database compatible with previous version

@@ -10,10 +10,15 @@ namespace BackupHelper.model
         public int ListViewIndex { get; set; }
         public Profile Profile { get; set; }
 
+        public Option()
+        {
+            SpecifiedFileNamesAndExtensions = new System.Collections.Generic.List<string>();
+        }
+
         public Option Clone()
         {
-            Option optionClone = (Option)this.MemberwiseClone();
-            optionClone.SpecifiedFileNamesAndExtensions = this.SpecifiedFileNamesAndExtensions.ToList();
+            Option optionClone = (Option)MemberwiseClone();
+            optionClone.SpecifiedFileNamesAndExtensions = SpecifiedFileNamesAndExtensions.ToList();
             return optionClone;
         }
 
