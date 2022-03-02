@@ -550,5 +550,27 @@ namespace BackupHelper
             GroupForm form = new GroupForm(this);
             form.ShowDialog();
         }
+
+        private void ToolStripMenuItemGenerateShortcut_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                List<Profile> selectedProfiles = listViewProfile.SelectedItems.Cast<ListViewItem>().Select(i => Profiles.Find(p => p.Id == (int)i.Tag)).ToList();
+                saveFileDialogShortcut.DefaultExt = ".bat";
+                saveFileDialogShortcut.Title = $"Generate profile shortcut - {selectedProfiles.Count} profile(s) selected";
+                saveFileDialogShortcut.Filter = "BAT files (*.bat)|*.bat|All files (*.*)|*.*";
+
+                if (saveFileDialogShortcut.ShowDialog() == DialogResult.OK)
+                {
+                    string content = $"\"{Assembly.GetExecutingAssembly().Location}\" \"{string.Join(";", selectedProfiles.Select(p => p.Name))}\"";
+                    File.WriteAllText(saveFileDialogShortcut.FileName, content);
+                    MessageBox.Show($"File saved as \"{saveFileDialogShortcut.FileName}\"");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
     }
 }

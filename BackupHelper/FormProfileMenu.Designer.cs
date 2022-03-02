@@ -38,10 +38,12 @@
             this.toolStripMenuItemChangeName = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemClone = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemGroup = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItemGenerateShortcut = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemDeleteProfile = new System.Windows.Forms.ToolStripMenuItem();
             this.buttonAddProfile = new System.Windows.Forms.Button();
             this.buttonOpenLogFile = new System.Windows.Forms.Button();
             this.labelVersion = new System.Windows.Forms.Label();
+            this.saveFileDialogShortcut = new System.Windows.Forms.SaveFileDialog();
             this.contextMenuStripProfile.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -96,35 +98,43 @@
             this.toolStripMenuItemChangeName,
             this.toolStripMenuItemClone,
             this.toolStripMenuItemGroup,
+            this.toolStripMenuItemGenerateShortcut,
             this.toolStripMenuItemDeleteProfile});
             this.contextMenuStripProfile.Name = "contextMenuStripProfile";
-            this.contextMenuStripProfile.Size = new System.Drawing.Size(149, 92);
+            this.contextMenuStripProfile.Size = new System.Drawing.Size(181, 136);
             // 
             // toolStripMenuItemChangeName
             // 
             this.toolStripMenuItemChangeName.Name = "toolStripMenuItemChangeName";
-            this.toolStripMenuItemChangeName.Size = new System.Drawing.Size(148, 22);
+            this.toolStripMenuItemChangeName.Size = new System.Drawing.Size(168, 22);
             this.toolStripMenuItemChangeName.Text = "Change name";
             this.toolStripMenuItemChangeName.Click += new System.EventHandler(this.ToolStripMenuItemChangeName_Click);
             // 
             // toolStripMenuItemClone
             // 
             this.toolStripMenuItemClone.Name = "toolStripMenuItemClone";
-            this.toolStripMenuItemClone.Size = new System.Drawing.Size(148, 22);
+            this.toolStripMenuItemClone.Size = new System.Drawing.Size(168, 22);
             this.toolStripMenuItemClone.Text = "Clone";
             this.toolStripMenuItemClone.Click += new System.EventHandler(this.ToolStripMenuItemClone_Click);
             // 
             // toolStripMenuItemGroup
             // 
             this.toolStripMenuItemGroup.Name = "toolStripMenuItemGroup";
-            this.toolStripMenuItemGroup.Size = new System.Drawing.Size(148, 22);
+            this.toolStripMenuItemGroup.Size = new System.Drawing.Size(168, 22);
             this.toolStripMenuItemGroup.Text = "Group";
             this.toolStripMenuItemGroup.Click += new System.EventHandler(this.ToolStripMenuItemGroup_Click);
+            // 
+            // toolStripMenuItemGenerateShortcut
+            // 
+            this.toolStripMenuItemGenerateShortcut.Name = "toolStripMenuItemGenerateShortcut";
+            this.toolStripMenuItemGenerateShortcut.Size = new System.Drawing.Size(168, 22);
+            this.toolStripMenuItemGenerateShortcut.Text = "Generate shortcut";
+            this.toolStripMenuItemGenerateShortcut.Click += new System.EventHandler(this.ToolStripMenuItemGenerateShortcut_Click);
             // 
             // toolStripMenuItemDeleteProfile
             // 
             this.toolStripMenuItemDeleteProfile.Name = "toolStripMenuItemDeleteProfile";
-            this.toolStripMenuItemDeleteProfile.Size = new System.Drawing.Size(148, 22);
+            this.toolStripMenuItemDeleteProfile.Size = new System.Drawing.Size(168, 22);
             this.toolStripMenuItemDeleteProfile.Text = "Delete";
             this.toolStripMenuItemDeleteProfile.Click += new System.EventHandler(this.ToolStripMenuItemDeleteProfile_Click);
             // 
@@ -195,6 +205,8 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemDeleteProfile;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemClone;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemGroup;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemGenerateShortcut;
+        private System.Windows.Forms.SaveFileDialog saveFileDialogShortcut;
     }
 }
 

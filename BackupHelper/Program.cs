@@ -19,12 +19,6 @@ namespace BackupHelper
         [STAThread]
         static void Main(string[] args)
         {
-            if (ApplicationIsRunning())
-            {
-                MessageBox.Show("Application is already running.");
-                return;
-            }
-
             //args = new string[] { "new:w", "s"};
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -41,8 +35,6 @@ namespace BackupHelper
 
                 try
                 {
-                    LogManager.WriteLine("Starting transfer from parameters...");
-
                     if (args.Length == 1)
                         profileNamesStr = args[0];
                     else if (args.Length == 2)
@@ -66,6 +58,8 @@ namespace BackupHelper
                         return;
                     }
 
+                    LogManager.WriteLine("Starting transfer from parameters...");
+
                     List<Profile> profiles = DBAccess.ListProfiles();
 
                     if (profiles.Count == 0)
@@ -77,7 +71,7 @@ namespace BackupHelper
                         return;
                     }
 
-                    string[] profileNames = profileNamesStr.Split(':');
+                    string[] profileNames = profileNamesStr.Split(';');
                     FileControlConsoleImpl fileControl = new FileControlConsoleImpl(showDialogs);
 
                     foreach (string profileName in profileNames)
@@ -148,6 +142,12 @@ namespace BackupHelper
                     LogManager.WriteLine("");
                     LogManager.CloseWritter();
                 }
+            }
+
+            if (ApplicationIsRunning())
+            {
+                MessageBox.Show("Application is already running.");
+                return;
             }
 
             //if (!File.Exists(DBPath))

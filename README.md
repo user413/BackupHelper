@@ -7,6 +7,6 @@
 Alternatively profiles can be executed directly without the interface:
 #### CMD example:
 ```batch
-BackupHelper.exe -nd profilename1:profilename2:profilename3
+BackupHelper.exe -nd profilename1;profilename2;profilename3
 ```
 Optional -nd tag can be added to avoid error dialogs during executions

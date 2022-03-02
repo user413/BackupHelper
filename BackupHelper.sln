@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackupHelper", "BackupHelper\BackupHelper.csproj", "{960576ED-78BD-460D-9C5E-3E422329FA1B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{67E7840B-0306-44EA-BBD6-641E388C3C9D} = {67E7840B-0306-44EA-BBD6-641E388C3C9D}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileControlUtility", "..\..\Library\FileControlUtility\FileControlUtility\FileControlUtility.csproj", "{67E7840B-0306-44EA-BBD6-641E388C3C9D}"
 EndProject

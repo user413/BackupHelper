@@ -62,6 +62,12 @@ namespace BinanceAutoTrader
                 }
                 else
                 {
+                    if (string.IsNullOrWhiteSpace(textBoxNewGroup.Text))
+                    {
+                        MessageBox.Show("Invalid name.");
+                        return;
+                    }
+
                     if (ListViewGroups.Find(g => g.Header == textBoxNewGroup.Text) != null)
                     {
                         MessageBox.Show("Group name already exists.");
