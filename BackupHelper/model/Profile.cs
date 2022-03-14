@@ -11,7 +11,7 @@ namespace BackupHelper.model
         public DateTime TimeCreated { get; set; }
         public DateTime LastTimeModified { get; set; }
         public DateTime LastTimeExecuted { get; set; }
-        public List<Option> Options { get; set; }
+        public List<Options> Options { get; set; }
         public string GroupName { get; set; } = "Ungrouped";
 
         public Profile Clone()

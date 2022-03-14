@@ -11,14 +11,6 @@ using System.Windows.Forms;
 
 namespace BackupHelper
 {
-    public enum ListViewProfileSubItemIndex
-    {
-        INDEX_NAME = 0,
-        INDEX_TIME_EXECUTED = 1,
-        INDEX_TIME_MODIFIED = 2,
-        INDEX_CREATED_AT = 3
-    }
-
     public partial class FormProfileMenu : Form
     {
         public List<Profile> Profiles;
@@ -200,6 +192,16 @@ namespace BackupHelper
             }
         }
 
+        //public void UpdateListViewItem(Profile profile)
+        //{
+        //    foreach (ListViewItem i in listViewProfile.Items)
+        //        if ((int)i.Tag == profile.Id)
+        //        {
+        //            EditListViewItem(profile, i);
+        //            return;
+        //        }
+        //}
+
         private void UpdateProfileListViewIndexes()
         {
             foreach (ListViewItem item in listViewProfile.Items)
@@ -380,8 +382,9 @@ namespace BackupHelper
 
         public ListViewItem GetListViewItemById(int id)
         {
-            foreach(ListViewItem item in listViewProfile.Items)
-                if (int.Parse(item.Tag.ToString()) == id) return item;
+            foreach (ListViewItem item in listViewProfile.Items)
+                if ((int)item.Tag == id) return item;
+
             return null;
         }
 
@@ -507,11 +510,11 @@ namespace BackupHelper
 
             Profile clonedProfile = profile.Clone();
             clonedProfile.Name = GenerateEnumeratedName(clonedProfile.Name);
-            List<Option> clonedOptions = new List<Option>();
+            List<Options> clonedOptions = new List<Options>();
 
-            foreach (Option option in DBAccess.ListProfileOptions(profile))
+            foreach (Options option in DBAccess.ListProfileOptions(profile))
             {
-                Option clonedOption= option.Clone();
+                Options clonedOption= option.Clone();
                 clonedOption.Profile = clonedProfile;
                 clonedOptions.Add(clonedOption);
             }
@@ -520,7 +523,7 @@ namespace BackupHelper
             DBAccess.AddProfile(clonedProfile);
             Profiles.Add(clonedProfile);
 
-            foreach (Option clonedOption in clonedOptions)
+            foreach (Options clonedOption in clonedOptions)
                 DBAccess.AddOption(clonedOption);
 
             ListViewItem item = new ListViewItem();
@@ -558,7 +561,7 @@ namespace BackupHelper
                 List<Profile> selectedProfiles = listViewProfile.SelectedItems.Cast<ListViewItem>().Select(i => Profiles.Find(p => p.Id == (int)i.Tag)).ToList();
                 saveFileDialogShortcut.DefaultExt = ".bat";
                 saveFileDialogShortcut.Title = $"Generate profile shortcut - {selectedProfiles.Count} profile(s) selected";
-                saveFileDialogShortcut.Filter = "BAT files (*.bat)|*.bat|All files (*.*)|*.*";
+                saveFileDialogShortcut.Filter = "BAT files (*.bat)|*.bat";
 
                 if (saveFileDialogShortcut.ShowDialog() == DialogResult.OK)
                 {

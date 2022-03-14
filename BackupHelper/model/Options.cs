@@ -3,21 +3,21 @@ using System.Linq;
 
 namespace BackupHelper.model
 {
-    public class Option : TransferSettings
+    public class Options : TransferSettings
     {
         public int Id { get; set; }
         public bool AllowIgnoreFileExt { get; set; }
         public int ListViewIndex { get; set; }
         public Profile Profile { get; set; }
 
-        public Option()
+        public Options()
         {
             SpecifiedFileNamesAndExtensions = new System.Collections.Generic.List<string>();
         }
 
-        public Option Clone()
+        public Options Clone()
         {
-            Option optionClone = (Option)MemberwiseClone();
+            Options optionClone = (Options)MemberwiseClone();
             optionClone.SpecifiedFileNamesAndExtensions = SpecifiedFileNamesAndExtensions.ToList();
             return optionClone;
         }
@@ -26,8 +26,8 @@ namespace BackupHelper.model
         {
             switch (fileNameConflictMethod)
             {
-                case FileNameConflictMethod.DO_NOT_MOVE:
-                    return "Do not move";
+                case FileNameConflictMethod.SKIP:
+                    return "Skip";
                 case FileNameConflictMethod.REPLACE_ALL:
                     return "Replace all";
                 case FileNameConflictMethod.REPLACE_DIFFERENT:

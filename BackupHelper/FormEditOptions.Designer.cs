@@ -1,6 +1,6 @@
 ﻿namespace BackupHelper
 {
-    partial class FormEditOption
+    partial class FormEditOptions
     {
         /// <summary>
         /// Required designer variable.
@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormEditOptions));
             this.checkBoxKeepOriginFiles = new System.Windows.Forms.CheckBox();
             this.checkBoxMoveSubfolders = new System.Windows.Forms.CheckBox();
             this.comboBoxMethod = new System.Windows.Forms.ComboBox();
@@ -57,15 +58,21 @@
             this.labelCleanDestinyHelp = new System.Windows.Forms.Label();
             this.labelDeleteUncommonFilesHelp = new System.Windows.Forms.Label();
             this.toolTipHelp = new System.Windows.Forms.ToolTip(this.components);
+            this.labelReenumerateHelp = new System.Windows.Forms.Label();
+            this.checkBoxReenumerate = new System.Windows.Forms.CheckBox();
+            this.numericUpDownMaxKeptRenamedFileCount = new System.Windows.Forms.NumericUpDown();
+            this.labelMaxKeptRenamedFileCount = new System.Windows.Forms.Label();
             this.panelManageExtensions.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownMaxKeptRenamedFileCount)).BeginInit();
             this.SuspendLayout();
             // 
             // checkBoxKeepOriginFiles
             // 
+            this.checkBoxKeepOriginFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxKeepOriginFiles.AutoSize = true;
             this.checkBoxKeepOriginFiles.Checked = true;
             this.checkBoxKeepOriginFiles.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxKeepOriginFiles.Location = new System.Drawing.Point(237, 137);
+            this.checkBoxKeepOriginFiles.Location = new System.Drawing.Point(260, 137);
             this.checkBoxKeepOriginFiles.Name = "checkBoxKeepOriginFiles";
             this.checkBoxKeepOriginFiles.Size = new System.Drawing.Size(172, 17);
             this.checkBoxKeepOriginFiles.TabIndex = 6;
@@ -74,10 +81,11 @@
             // 
             // checkBoxMoveSubfolders
             // 
+            this.checkBoxMoveSubfolders.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxMoveSubfolders.AutoSize = true;
             this.checkBoxMoveSubfolders.Checked = true;
             this.checkBoxMoveSubfolders.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxMoveSubfolders.Location = new System.Drawing.Point(237, 119);
+            this.checkBoxMoveSubfolders.Location = new System.Drawing.Point(260, 119);
             this.checkBoxMoveSubfolders.Name = "checkBoxMoveSubfolders";
             this.checkBoxMoveSubfolders.Size = new System.Drawing.Size(112, 17);
             this.checkBoxMoveSubfolders.TabIndex = 5;
@@ -86,40 +94,40 @@
             // 
             // comboBoxMethod
             // 
-            this.comboBoxMethod.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
+            this.comboBoxMethod.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.comboBoxMethod.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
             this.comboBoxMethod.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxMethod.FormattingEnabled = true;
-            this.comboBoxMethod.Location = new System.Drawing.Point(237, 222);
+            this.comboBoxMethod.Location = new System.Drawing.Point(260, 222);
             this.comboBoxMethod.Name = "comboBoxMethod";
-            this.comboBoxMethod.Size = new System.Drawing.Size(301, 21);
+            this.comboBoxMethod.Size = new System.Drawing.Size(369, 21);
             this.comboBoxMethod.TabIndex = 9;
             this.comboBoxMethod.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.ComboBoxMethod_DrawItem);
             this.comboBoxMethod.SelectedIndexChanged += new System.EventHandler(this.ComboBoxMethod_SelectedIndexChanged);
             // 
             // textBoxDestinyPath
             // 
-            this.textBoxDestinyPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
+            this.textBoxDestinyPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxDestinyPath.Location = new System.Drawing.Point(15, 76);
             this.textBoxDestinyPath.Name = "textBoxDestinyPath";
-            this.textBoxDestinyPath.Size = new System.Drawing.Size(486, 20);
+            this.textBoxDestinyPath.Size = new System.Drawing.Size(577, 20);
             this.textBoxDestinyPath.TabIndex = 3;
             // 
             // textBoxSourcePath
             // 
-            this.textBoxSourcePath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
+            this.textBoxSourcePath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxSourcePath.Location = new System.Drawing.Point(15, 29);
             this.textBoxSourcePath.Name = "textBoxSourcePath";
-            this.textBoxSourcePath.Size = new System.Drawing.Size(486, 20);
+            this.textBoxSourcePath.Size = new System.Drawing.Size(577, 20);
             this.textBoxSourcePath.TabIndex = 1;
             // 
             // labelMethod
             // 
+            this.labelMethod.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelMethod.AutoSize = true;
-            this.labelMethod.Location = new System.Drawing.Point(234, 206);
+            this.labelMethod.Location = new System.Drawing.Point(257, 206);
             this.labelMethod.Name = "labelMethod";
             this.labelMethod.Size = new System.Drawing.Size(225, 13);
             this.labelMethod.TabIndex = 14;
@@ -145,10 +153,11 @@
             // 
             // buttonAddSource
             // 
+            this.buttonAddSource.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonAddSource.BackColor = System.Drawing.SystemColors.ControlLight;
             this.buttonAddSource.Cursor = System.Windows.Forms.Cursors.Cross;
             this.buttonAddSource.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonAddSource.Location = new System.Drawing.Point(500, 26);
+            this.buttonAddSource.Location = new System.Drawing.Point(591, 26);
             this.buttonAddSource.Name = "buttonAddSource";
             this.buttonAddSource.Size = new System.Drawing.Size(42, 25);
             this.buttonAddSource.TabIndex = 2;
@@ -158,10 +167,11 @@
             // 
             // buttonAddDestiny
             // 
+            this.buttonAddDestiny.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonAddDestiny.BackColor = System.Drawing.SystemColors.ControlLight;
             this.buttonAddDestiny.Cursor = System.Windows.Forms.Cursors.Cross;
             this.buttonAddDestiny.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonAddDestiny.Location = new System.Drawing.Point(500, 73);
+            this.buttonAddDestiny.Location = new System.Drawing.Point(591, 73);
             this.buttonAddDestiny.Name = "buttonAddDestiny";
             this.buttonAddDestiny.Size = new System.Drawing.Size(42, 25);
             this.buttonAddDestiny.TabIndex = 4;
@@ -171,11 +181,11 @@
             // 
             // buttonDoneEdit
             // 
-            this.buttonDoneEdit.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.buttonDoneEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonDoneEdit.FlatAppearance.BorderColor = System.Drawing.Color.Black;
-            this.buttonDoneEdit.Location = new System.Drawing.Point(237, 260);
+            this.buttonDoneEdit.Location = new System.Drawing.Point(527, 269);
             this.buttonDoneEdit.Name = "buttonDoneEdit";
-            this.buttonDoneEdit.Size = new System.Drawing.Size(121, 36);
+            this.buttonDoneEdit.Size = new System.Drawing.Size(103, 36);
             this.buttonDoneEdit.TabIndex = 10;
             this.buttonDoneEdit.Text = "Done";
             this.buttonDoneEdit.UseVisualStyleBackColor = true;
@@ -183,8 +193,9 @@
             // 
             // checkBoxCleanDestinyDirectory
             // 
+            this.checkBoxCleanDestinyDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxCleanDestinyDirectory.AutoSize = true;
-            this.checkBoxCleanDestinyDirectory.Location = new System.Drawing.Point(237, 155);
+            this.checkBoxCleanDestinyDirectory.Location = new System.Drawing.Point(260, 155);
             this.checkBoxCleanDestinyDirectory.Name = "checkBoxCleanDestinyDirectory";
             this.checkBoxCleanDestinyDirectory.Size = new System.Drawing.Size(151, 17);
             this.checkBoxCleanDestinyDirectory.TabIndex = 7;
@@ -194,8 +205,9 @@
             // 
             // buttonSwitchPaths
             // 
+            this.buttonSwitchPaths.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonSwitchPaths.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.buttonSwitchPaths.Location = new System.Drawing.Point(367, 52);
+            this.buttonSwitchPaths.Location = new System.Drawing.Point(458, 52);
             this.buttonSwitchPaths.Name = "buttonSwitchPaths";
             this.buttonSwitchPaths.Size = new System.Drawing.Size(101, 21);
             this.buttonSwitchPaths.TabIndex = 3;
@@ -205,9 +217,10 @@
             // 
             // checkBoxManageFileNamesAndExtensions
             // 
-            this.checkBoxManageFileNamesAndExtensions.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.checkBoxManageFileNamesAndExtensions.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxManageFileNamesAndExtensions.AutoSize = true;
-            this.checkBoxManageFileNamesAndExtensions.Location = new System.Drawing.Point(17, 5);
+            this.checkBoxManageFileNamesAndExtensions.Location = new System.Drawing.Point(13, 8);
             this.checkBoxManageFileNamesAndExtensions.Name = "checkBoxManageFileNamesAndExtensions";
             this.checkBoxManageFileNamesAndExtensions.Size = new System.Drawing.Size(167, 17);
             this.checkBoxManageFileNamesAndExtensions.TabIndex = 11;
@@ -217,7 +230,9 @@
             // 
             // listViewFileNamesAndExtensions
             // 
-            this.listViewFileNamesAndExtensions.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.listViewFileNamesAndExtensions.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.listViewFileNamesAndExtensions.BackColor = System.Drawing.SystemColors.Window;
             this.listViewFileNamesAndExtensions.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeaderFileOrExtension});
@@ -225,11 +240,11 @@
             this.listViewFileNamesAndExtensions.ForeColor = System.Drawing.SystemColors.InactiveCaption;
             this.listViewFileNamesAndExtensions.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this.listViewFileNamesAndExtensions.HideSelection = false;
-            this.listViewFileNamesAndExtensions.Location = new System.Drawing.Point(16, 47);
+            this.listViewFileNamesAndExtensions.Location = new System.Drawing.Point(12, 53);
             this.listViewFileNamesAndExtensions.MultiSelect = false;
             this.listViewFileNamesAndExtensions.Name = "listViewFileNamesAndExtensions";
             this.listViewFileNamesAndExtensions.ShowItemToolTips = true;
-            this.listViewFileNamesAndExtensions.Size = new System.Drawing.Size(169, 105);
+            this.listViewFileNamesAndExtensions.Size = new System.Drawing.Size(223, 120);
             this.listViewFileNamesAndExtensions.TabIndex = 9;
             this.listViewFileNamesAndExtensions.UseCompatibleStateImageBehavior = false;
             this.listViewFileNamesAndExtensions.View = System.Windows.Forms.View.Details;
@@ -238,10 +253,13 @@
             // columnHeaderFileOrExtension
             // 
             this.columnHeaderFileOrExtension.Text = "File or extension";
-            this.columnHeaderFileOrExtension.Width = 165;
+            this.columnHeaderFileOrExtension.Width = 205;
             // 
             // panelManageExtensions
             // 
+            this.panelManageExtensions.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.panelManageExtensions.Controls.Add(this.textBoxFileNameOrExtension);
             this.panelManageExtensions.Controls.Add(this.radioButtonIgnore);
             this.panelManageExtensions.Controls.Add(this.checkBoxManageFileNamesAndExtensions);
@@ -249,27 +267,30 @@
             this.panelManageExtensions.Controls.Add(this.buttonRemoveFileOrExtension);
             this.panelManageExtensions.Controls.Add(this.buttonAddFileOrExtension);
             this.panelManageExtensions.Controls.Add(this.listViewFileNamesAndExtensions);
-            this.panelManageExtensions.Location = new System.Drawing.Point(15, 112);
+            this.panelManageExtensions.Location = new System.Drawing.Point(6, 104);
             this.panelManageExtensions.Name = "panelManageExtensions";
-            this.panelManageExtensions.Size = new System.Drawing.Size(202, 186);
+            this.panelManageExtensions.Size = new System.Drawing.Size(248, 207);
             this.panelManageExtensions.TabIndex = 28;
             // 
             // textBoxFileNameOrExtension
             // 
-            this.textBoxFileNameOrExtension.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.textBoxFileNameOrExtension.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxFileNameOrExtension.Enabled = false;
-            this.textBoxFileNameOrExtension.Location = new System.Drawing.Point(16, 158);
+            this.textBoxFileNameOrExtension.Location = new System.Drawing.Point(12, 179);
             this.textBoxFileNameOrExtension.Name = "textBoxFileNameOrExtension";
-            this.textBoxFileNameOrExtension.Size = new System.Drawing.Size(91, 20);
+            this.textBoxFileNameOrExtension.Size = new System.Drawing.Size(144, 20);
             this.textBoxFileNameOrExtension.TabIndex = 14;
             this.textBoxFileNameOrExtension.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxExtension_KeyPress);
             // 
             // radioButtonIgnore
             // 
-            this.radioButtonIgnore.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.radioButtonIgnore.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.radioButtonIgnore.AutoSize = true;
             this.radioButtonIgnore.Enabled = false;
-            this.radioButtonIgnore.Location = new System.Drawing.Point(109, 24);
+            this.radioButtonIgnore.Location = new System.Drawing.Point(105, 30);
             this.radioButtonIgnore.Name = "radioButtonIgnore";
             this.radioButtonIgnore.Size = new System.Drawing.Size(55, 17);
             this.radioButtonIgnore.TabIndex = 13;
@@ -278,11 +299,12 @@
             // 
             // radioButtonAllowOnly
             // 
-            this.radioButtonAllowOnly.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.radioButtonAllowOnly.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.radioButtonAllowOnly.AutoSize = true;
             this.radioButtonAllowOnly.Checked = true;
             this.radioButtonAllowOnly.Enabled = false;
-            this.radioButtonAllowOnly.Location = new System.Drawing.Point(31, 24);
+            this.radioButtonAllowOnly.Location = new System.Drawing.Point(27, 30);
             this.radioButtonAllowOnly.Name = "radioButtonAllowOnly";
             this.radioButtonAllowOnly.Size = new System.Drawing.Size(74, 17);
             this.radioButtonAllowOnly.TabIndex = 12;
@@ -292,9 +314,11 @@
             // 
             // buttonRemoveFileOrExtension
             // 
-            this.buttonRemoveFileOrExtension.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.buttonRemoveFileOrExtension.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonRemoveFileOrExtension.Enabled = false;
-            this.buttonRemoveFileOrExtension.Location = new System.Drawing.Point(148, 157);
+            this.buttonRemoveFileOrExtension.Location = new System.Drawing.Point(197, 178);
             this.buttonRemoveFileOrExtension.Name = "buttonRemoveFileOrExtension";
             this.buttonRemoveFileOrExtension.Size = new System.Drawing.Size(38, 22);
             this.buttonRemoveFileOrExtension.TabIndex = 16;
@@ -304,9 +328,11 @@
             // 
             // buttonAddFileOrExtension
             // 
-            this.buttonAddFileOrExtension.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.buttonAddFileOrExtension.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonAddFileOrExtension.Enabled = false;
-            this.buttonAddFileOrExtension.Location = new System.Drawing.Point(109, 157);
+            this.buttonAddFileOrExtension.Location = new System.Drawing.Point(158, 178);
             this.buttonAddFileOrExtension.Name = "buttonAddFileOrExtension";
             this.buttonAddFileOrExtension.Size = new System.Drawing.Size(38, 22);
             this.buttonAddFileOrExtension.TabIndex = 15;
@@ -316,9 +342,10 @@
             // 
             // checkBoxDeleteUncommonFiles
             // 
+            this.checkBoxDeleteUncommonFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxDeleteUncommonFiles.AutoSize = true;
             this.checkBoxDeleteUncommonFiles.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.checkBoxDeleteUncommonFiles.Location = new System.Drawing.Point(237, 173);
+            this.checkBoxDeleteUncommonFiles.Location = new System.Drawing.Point(260, 173);
             this.checkBoxDeleteUncommonFiles.Name = "checkBoxDeleteUncommonFiles";
             this.checkBoxDeleteUncommonFiles.Size = new System.Drawing.Size(205, 17);
             this.checkBoxDeleteUncommonFiles.TabIndex = 8;
@@ -328,55 +355,116 @@
             // 
             // labelKeepOriginFilesHelp
             // 
+            this.labelKeepOriginFilesHelp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelKeepOriginFilesHelp.AutoSize = true;
             this.labelKeepOriginFilesHelp.BackColor = System.Drawing.Color.Green;
             this.labelKeepOriginFilesHelp.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelKeepOriginFilesHelp.ForeColor = System.Drawing.Color.White;
-            this.labelKeepOriginFilesHelp.Location = new System.Drawing.Point(406, 139);
+            this.labelKeepOriginFilesHelp.Location = new System.Drawing.Point(429, 139);
             this.labelKeepOriginFilesHelp.Name = "labelKeepOriginFilesHelp";
             this.labelKeepOriginFilesHelp.Size = new System.Drawing.Size(11, 12);
             this.labelKeepOriginFilesHelp.TabIndex = 31;
             this.labelKeepOriginFilesHelp.Text = "?";
-            this.toolTipHelp.SetToolTip(this.labelKeepOriginFilesHelp, "Origin files and directories will be copied instead of moved");
+            this.toolTipHelp.SetToolTip(this.labelKeepOriginFilesHelp, "Origin files and directories will be copied instead of moved.");
             // 
             // labelCleanDestinyHelp
             // 
+            this.labelCleanDestinyHelp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelCleanDestinyHelp.AutoSize = true;
             this.labelCleanDestinyHelp.BackColor = System.Drawing.Color.Green;
             this.labelCleanDestinyHelp.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelCleanDestinyHelp.ForeColor = System.Drawing.Color.White;
-            this.labelCleanDestinyHelp.Location = new System.Drawing.Point(385, 157);
+            this.labelCleanDestinyHelp.Location = new System.Drawing.Point(408, 157);
             this.labelCleanDestinyHelp.Name = "labelCleanDestinyHelp";
             this.labelCleanDestinyHelp.Size = new System.Drawing.Size(11, 12);
             this.labelCleanDestinyHelp.TabIndex = 32;
             this.labelCleanDestinyHelp.Text = "?";
-            this.toolTipHelp.SetToolTip(this.labelCleanDestinyHelp, "All destiny files and directories will be deleted before transfering");
+            this.toolTipHelp.SetToolTip(this.labelCleanDestinyHelp, "All destiny files and directories will be deleted before transfering.");
             // 
             // labelDeleteUncommonFilesHelp
             // 
+            this.labelDeleteUncommonFilesHelp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelDeleteUncommonFilesHelp.AutoSize = true;
             this.labelDeleteUncommonFilesHelp.BackColor = System.Drawing.Color.Green;
             this.labelDeleteUncommonFilesHelp.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelDeleteUncommonFilesHelp.ForeColor = System.Drawing.Color.White;
-            this.labelDeleteUncommonFilesHelp.Location = new System.Drawing.Point(439, 175);
+            this.labelDeleteUncommonFilesHelp.Location = new System.Drawing.Point(462, 175);
             this.labelDeleteUncommonFilesHelp.Name = "labelDeleteUncommonFilesHelp";
             this.labelDeleteUncommonFilesHelp.Size = new System.Drawing.Size(11, 12);
             this.labelDeleteUncommonFilesHelp.TabIndex = 33;
             this.labelDeleteUncommonFilesHelp.Text = "?";
             this.toolTipHelp.SetToolTip(this.labelDeleteUncommonFilesHelp, "Delete files and directories present in the destiny directory that aren\'t present" +
-        " in the origin directory");
+        " in the origin directory.");
             // 
             // toolTipHelp
             // 
-            this.toolTipHelp.AutoPopDelay = 10000;
+            this.toolTipHelp.AutomaticDelay = 40000;
+            this.toolTipHelp.AutoPopDelay = 30000;
             this.toolTipHelp.InitialDelay = 500;
             this.toolTipHelp.ReshowDelay = 100;
             // 
-            // FormEditOption
+            // labelReenumerateHelp
+            // 
+            this.labelReenumerateHelp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelReenumerateHelp.AutoSize = true;
+            this.labelReenumerateHelp.BackColor = System.Drawing.Color.Green;
+            this.labelReenumerateHelp.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelReenumerateHelp.ForeColor = System.Drawing.Color.White;
+            this.labelReenumerateHelp.Location = new System.Drawing.Point(427, 264);
+            this.labelReenumerateHelp.Name = "labelReenumerateHelp";
+            this.labelReenumerateHelp.Size = new System.Drawing.Size(11, 12);
+            this.labelReenumerateHelp.TabIndex = 37;
+            this.labelReenumerateHelp.Text = "?";
+            this.toolTipHelp.SetToolTip(this.labelReenumerateHelp, resources.GetString("labelReenumerateHelp.ToolTip"));
+            // 
+            // checkBoxReenumerate
+            // 
+            this.checkBoxReenumerate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkBoxReenumerate.AutoSize = true;
+            this.checkBoxReenumerate.Enabled = false;
+            this.checkBoxReenumerate.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.checkBoxReenumerate.Location = new System.Drawing.Point(272, 262);
+            this.checkBoxReenumerate.Name = "checkBoxReenumerate";
+            this.checkBoxReenumerate.Size = new System.Drawing.Size(158, 17);
+            this.checkBoxReenumerate.TabIndex = 34;
+            this.checkBoxReenumerate.Text = "Re-enumerate renamed files";
+            this.checkBoxReenumerate.UseVisualStyleBackColor = true;
+            this.checkBoxReenumerate.CheckedChanged += new System.EventHandler(this.CheckBoxReenumerate_CheckedChanged);
+            // 
+            // numericUpDownMaxKeptRenamedFileCount
+            // 
+            this.numericUpDownMaxKeptRenamedFileCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.numericUpDownMaxKeptRenamedFileCount.Enabled = false;
+            this.numericUpDownMaxKeptRenamedFileCount.Location = new System.Drawing.Point(407, 283);
+            this.numericUpDownMaxKeptRenamedFileCount.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.numericUpDownMaxKeptRenamedFileCount.Name = "numericUpDownMaxKeptRenamedFileCount";
+            this.numericUpDownMaxKeptRenamedFileCount.Size = new System.Drawing.Size(75, 20);
+            this.numericUpDownMaxKeptRenamedFileCount.TabIndex = 35;
+            // 
+            // labelMaxKeptRenamedFileCount
+            // 
+            this.labelMaxKeptRenamedFileCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelMaxKeptRenamedFileCount.AutoSize = true;
+            this.labelMaxKeptRenamedFileCount.Enabled = false;
+            this.labelMaxKeptRenamedFileCount.Location = new System.Drawing.Point(269, 285);
+            this.labelMaxKeptRenamedFileCount.Name = "labelMaxKeptRenamedFileCount";
+            this.labelMaxKeptRenamedFileCount.Size = new System.Drawing.Size(137, 13);
+            this.labelMaxKeptRenamedFileCount.TabIndex = 36;
+            this.labelMaxKeptRenamedFileCount.Text = "Max. enumerated files kept:";
+            // 
+            // FormEditOptions
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(559, 311);
+            this.ClientSize = new System.Drawing.Size(650, 320);
+            this.Controls.Add(this.labelReenumerateHelp);
+            this.Controls.Add(this.labelMaxKeptRenamedFileCount);
+            this.Controls.Add(this.numericUpDownMaxKeptRenamedFileCount);
+            this.Controls.Add(this.checkBoxReenumerate);
             this.Controls.Add(this.labelDeleteUncommonFilesHelp);
             this.Controls.Add(this.labelCleanDestinyHelp);
             this.Controls.Add(this.labelKeepOriginFilesHelp);
@@ -397,11 +485,12 @@
             this.Controls.Add(this.labelSourcePath);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
-            this.Name = "FormEditOption";
+            this.Name = "FormEditOptions";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Edit Option";
+            this.Text = "Edit Options";
             this.panelManageExtensions.ResumeLayout(false);
             this.panelManageExtensions.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownMaxKeptRenamedFileCount)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -437,5 +526,9 @@
         private System.Windows.Forms.Label labelCleanDestinyHelp;
         private System.Windows.Forms.Label labelDeleteUncommonFilesHelp;
         private System.Windows.Forms.ToolTip toolTipHelp;
+        private System.Windows.Forms.CheckBox checkBoxReenumerate;
+        private System.Windows.Forms.NumericUpDown numericUpDownMaxKeptRenamedFileCount;
+        private System.Windows.Forms.Label labelMaxKeptRenamedFileCount;
+        private System.Windows.Forms.Label labelReenumerateHelp;
     }
 }

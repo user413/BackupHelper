@@ -52,9 +52,15 @@ namespace BackupHelper
                 return;
             }
 
+            if (textBoxProfileName.Text.Contains(";"))
+            {
+                MessageBox.Show("Name contains the reserved character \";\".");
+                return;
+            }
+
             if (TextContainsInvalidCharacters(textBoxProfileName.Text))
             {
-                MessageBox.Show($"Name contains invalid characters.");
+                MessageBox.Show("Name contains invalid characters.");
                 return;
             }
 

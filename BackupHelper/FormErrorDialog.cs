@@ -15,8 +15,8 @@ namespace BackupHelper
             textBoxErrorDialog.Text = message;
             textBoxErrorDialog.TabStop = false;
             ActionType = actionType;
-            if(actionType == typeof(FileTransferErrorActionNonRepeatable))
-                this.buttonTryAgain.Enabled = false;
+            if (actionType == typeof(FileTransferErrorActionNonRepeatable))
+                buttonTryAgain.Enabled = false;
         }
 
         private void ButtonErrorDialogIgnore_Click(object sender, EventArgs e)
@@ -26,7 +26,7 @@ namespace BackupHelper
             if (ActionType == typeof(FileTransferErrorActionNonRepeatable))
                 Result = FileTransferErrorActionNonRepeatable.JUMP;
 
-            this.Close();
+            Close();
         }
 
         private void ButtonErrorDialogCancel_Click(object sender, EventArgs e)
@@ -36,13 +36,13 @@ namespace BackupHelper
             if (ActionType == typeof(FileTransferErrorActionNonRepeatable))
                 Result = FileTransferErrorActionNonRepeatable.CANCEL;
 
-            this.Close();
+            Close();
         }
 
         private void ButtonTryAgain_Click(object sender, EventArgs e)
         {
             Result = FileTransferErrorActionRepeatable.REPEAT;
-            this.Close();
+            Close();
         }
     }
 }

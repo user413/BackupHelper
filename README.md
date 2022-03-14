@@ -1,8 +1,8 @@
 # BackupHelper
-
-- Lightweight interface to facilitate backup of files and directories.
-- A variety of settings can be chosen for each transfer including binary comparison.
-- The settings are saved into profiles.
+Interface implementation of the library https://github.com/user413/FileControlUtility
+- Lightweight interface
+- Includes binary comparison and renaming
+- Groups of settings are saved into profiles for later execution
 ------------
 Alternatively profiles can be executed directly without the interface:
 #### CMD example:

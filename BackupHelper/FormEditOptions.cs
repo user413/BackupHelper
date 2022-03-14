@@ -14,13 +14,13 @@ namespace BackupHelper
         EDIT, CREATE
     }
 
-    public partial class FormEditOption : Form
+    public partial class FormEditOptions : Form
     {
         private readonly FormOptionsMenu OptionsMenu;
-        public Option Option;
+        public Options Option;
         private readonly FormAction FormAction = FormAction.CREATE;
 
-        public FormEditOption(FormOptionsMenu optionsMenu, Option option = null)
+        public FormEditOptions(FormOptionsMenu optionsMenu, Options option = null)
         {
             InitializeComponent();
 
@@ -34,17 +34,12 @@ namespace BackupHelper
             }
             else
             {
-                Text = "Add option";
+                Text = "New Options";
 
-                FillCamps(new Option {
+                FillCamps(new Options {
                     SourcePath = "C:\\origin...",
                     DestinyPath = "C:\\destiny...",
-                    FileNameConflictMethod = FileNameConflictMethod.DO_NOT_MOVE,
-                    MoveSubFolders = true,
-                    KeepOriginFiles = true,
-                    CleanDestinyDirectory = false,
-                    AllowIgnoreFileExt = false,
-                    DeleteUncommonFiles = false
+                    IncludeSubFolders = true                    
                 });
             }
 
@@ -52,11 +47,11 @@ namespace BackupHelper
             KeyPreview = true;
         }
 
-        private void FillCamps(Option option)
+        private void FillCamps(Options option)
         {
             try
             {
-                comboBoxMethod.Items.Insert((int)FileNameConflictMethod.DO_NOT_MOVE, option.GetTransferMethodDescription(FileNameConflictMethod.DO_NOT_MOVE));
+                comboBoxMethod.Items.Insert((int)FileNameConflictMethod.SKIP, option.GetTransferMethodDescription(FileNameConflictMethod.SKIP));
                 comboBoxMethod.Items.Insert((int)FileNameConflictMethod.REPLACE_ALL, option.GetTransferMethodDescription(FileNameConflictMethod.REPLACE_ALL));
                 comboBoxMethod.Items.Insert((int)FileNameConflictMethod.REPLACE_DIFFERENT, option.GetTransferMethodDescription(FileNameConflictMethod.REPLACE_DIFFERENT));
                 comboBoxMethod.Items.Insert((int)FileNameConflictMethod.RENAME_DIFFERENT, option.GetTransferMethodDescription(FileNameConflictMethod.RENAME_DIFFERENT));
@@ -65,12 +60,14 @@ namespace BackupHelper
 
                 textBoxSourcePath.Text = option.SourcePath;
                 textBoxDestinyPath.Text = option.DestinyPath;
-                checkBoxMoveSubfolders.Checked = option.MoveSubFolders;
+                checkBoxMoveSubfolders.Checked = option.IncludeSubFolders;
                 checkBoxKeepOriginFiles.Checked = option.KeepOriginFiles;
                 checkBoxCleanDestinyDirectory.Checked = option.CleanDestinyDirectory;
                 checkBoxDeleteUncommonFiles.Checked = option.DeleteUncommonFiles;
                 checkBoxManageFileNamesAndExtensions.Checked = option.AllowIgnoreFileExt;
                 radioButtonIgnore.Checked = option.SpecifiedFileNamesOrExtensionsMode == SpecifiedFileNamesAndExtensionsMode.IGNORE;
+                checkBoxReenumerate.Checked = option.ReenumerateRenamedFiles;
+                numericUpDownMaxKeptRenamedFileCount.Value = option.MaxKeptRenamedFileCount;
 
                 foreach (string txt in option.SpecifiedFileNamesAndExtensions)
                     listViewFileNamesAndExtensions.Items.Add(new ListViewItem(txt));
@@ -94,8 +91,8 @@ namespace BackupHelper
         {
             try
             {
-                Option editedOption = new Option();
-                SaveCampsToObject(editedOption);
+                Options editedOption = new Options();
+                SaveFieldsToObject(editedOption);
                 if (!InputsAreValid(editedOption)) return;
 
                 if (FormAction == FormAction.CREATE)
@@ -106,7 +103,7 @@ namespace BackupHelper
                     OptionsMenu.Options.Add(editedOption);
                     Program.UpdateLastTimeModified(editedOption.Profile);
                     ListViewItem item = new ListViewItem();
-                    OptionsMenu.EditListViewItem(editedOption,item);
+                    OptionsMenu.EditListViewItem(editedOption, item);
                     OptionsMenu.listViewOptions.Items.Add(item);
                     //OptionsMenu.ResizeForm();
                 }
@@ -118,12 +115,14 @@ namespace BackupHelper
                             Option.DestinyPath == editedOption.DestinyPath &&
                             Option.FileNameConflictMethod == editedOption.FileNameConflictMethod &&
                             Option.SpecifiedFileNamesOrExtensionsMode == editedOption.SpecifiedFileNamesOrExtensionsMode &&
-                            Option.MoveSubFolders == editedOption.MoveSubFolders &&
+                            Option.IncludeSubFolders == editedOption.IncludeSubFolders &&
                             Option.KeepOriginFiles == editedOption.KeepOriginFiles &&
                             Option.CleanDestinyDirectory == editedOption.CleanDestinyDirectory &&
                             Option.DeleteUncommonFiles == editedOption.DeleteUncommonFiles &&
                             Option.AllowIgnoreFileExt == editedOption.AllowIgnoreFileExt &&
-                            ExtensionsAreTheSame(Option.SpecifiedFileNamesAndExtensions, editedOption.SpecifiedFileNamesAndExtensions)
+                            ExtensionsAreTheSame(Option.SpecifiedFileNamesAndExtensions, editedOption.SpecifiedFileNamesAndExtensions) &&
+                            Option.ReenumerateRenamedFiles == editedOption.ReenumerateRenamedFiles &&
+                            Option.MaxKeptRenamedFileCount == editedOption.MaxKeptRenamedFileCount
                         )
                     )
                     {
@@ -131,12 +130,14 @@ namespace BackupHelper
                         Option.DestinyPath = editedOption.DestinyPath;
                         Option.FileNameConflictMethod = editedOption.FileNameConflictMethod;
                         Option.SpecifiedFileNamesOrExtensionsMode = editedOption.SpecifiedFileNamesOrExtensionsMode;
-                        Option.MoveSubFolders = editedOption.MoveSubFolders;
+                        Option.IncludeSubFolders = editedOption.IncludeSubFolders;
                         Option.KeepOriginFiles = editedOption.KeepOriginFiles;
                         Option.CleanDestinyDirectory = editedOption.CleanDestinyDirectory;
                         Option.DeleteUncommonFiles = editedOption.DeleteUncommonFiles;
                         Option.AllowIgnoreFileExt = editedOption.AllowIgnoreFileExt;
                         Option.SpecifiedFileNamesAndExtensions = editedOption.SpecifiedFileNamesAndExtensions;
+                        Option.ReenumerateRenamedFiles = editedOption.ReenumerateRenamedFiles;
+                        Option.MaxKeptRenamedFileCount = editedOption.MaxKeptRenamedFileCount;
 
                         DBAccess.UpdateOption(Option);
                         Program.UpdateLastTimeModified(Option.Profile);
@@ -152,7 +153,7 @@ namespace BackupHelper
             }
         }
 
-        private bool InputsAreValid(Option editedOption)
+        private bool InputsAreValid(Options editedOption)
         {
             if(editedOption.SourcePath == "")
             {
@@ -179,19 +180,21 @@ namespace BackupHelper
             return true;
         }
 
-        private void SaveCampsToObject(Option editedOption)
+        private void SaveFieldsToObject(Options editedOption)
         {
             editedOption.SourcePath = textBoxSourcePath.Text;
             editedOption.DestinyPath = textBoxDestinyPath.Text;
             editedOption.FileNameConflictMethod = (FileNameConflictMethod)comboBoxMethod.SelectedIndex;
             editedOption.SpecifiedFileNamesOrExtensionsMode = radioButtonIgnore.Checked ? SpecifiedFileNamesAndExtensionsMode.IGNORE :
                 SpecifiedFileNamesAndExtensionsMode.ALLOW_ONLY;
-            editedOption.MoveSubFolders = checkBoxMoveSubfolders.Checked;
+            editedOption.IncludeSubFolders = checkBoxMoveSubfolders.Checked;
             editedOption.KeepOriginFiles = checkBoxKeepOriginFiles.Checked;
             editedOption.CleanDestinyDirectory = checkBoxCleanDestinyDirectory.Checked;
             editedOption.DeleteUncommonFiles = checkBoxDeleteUncommonFiles.Checked;
             editedOption.AllowIgnoreFileExt = checkBoxManageFileNamesAndExtensions.Checked;
             editedOption.SpecifiedFileNamesAndExtensions = listViewFileNamesAndExtensions.Items.Cast<ListViewItem>().Select(i => i.Text).ToList();
+            editedOption.ReenumerateRenamedFiles = checkBoxReenumerate.Checked;
+            editedOption.MaxKeptRenamedFileCount = (int)numericUpDownMaxKeptRenamedFileCount.Value;
         }
 
         //private List<string> ListViewFileExtensionsToList()
@@ -227,12 +230,15 @@ namespace BackupHelper
                 comboBoxMethod.Enabled = false;
                 labelMethod.Enabled = false;
                 checkBoxDeleteUncommonFiles.Enabled = false;
+                checkBoxReenumerate.Enabled = false;
+                checkBoxReenumerate.Checked = false;
             }
             else
             {
                 comboBoxMethod.Enabled = true;
                 labelMethod.Enabled = true;
                 checkBoxDeleteUncommonFiles.Enabled = true;
+                checkBoxReenumerate.Enabled = true;
             }
         }
 
@@ -240,7 +246,7 @@ namespace BackupHelper
         {
             if (checkBoxDeleteUncommonFiles.Checked)
             {
-                if(comboBoxMethod.SelectedIndex == 3)
+                if (comboBoxMethod.SelectedIndex == 3)
                     comboBoxMethod.SelectedIndex = 0;
             }
         }
@@ -261,8 +267,18 @@ namespace BackupHelper
 
         private void ComboBoxMethod_SelectedIndexChanged(object sender, EventArgs args)
         {
-            if (checkBoxDeleteUncommonFiles.Checked && comboBoxMethod.SelectedIndex == 3)
-                comboBoxMethod.SelectedIndex = 0;
+            if (comboBoxMethod.SelectedIndex == 3)
+            {
+                if (checkBoxDeleteUncommonFiles.Checked)
+                    comboBoxMethod.SelectedIndex = 0;
+                else
+                    checkBoxReenumerate.Enabled = true;
+            }
+            else
+            {
+                checkBoxReenumerate.Checked = false;
+                checkBoxReenumerate.Enabled = false;
+            }
         }
 
         private void ButtonSwitchPaths_Click(object sender, EventArgs e)
@@ -411,6 +427,12 @@ namespace BackupHelper
                 if (DialogResult != DialogResult.None)
                     Close();
             }
+        }
+
+        private void CheckBoxReenumerate_CheckedChanged(object sender, EventArgs e)
+        {
+            labelMaxKeptRenamedFileCount.Enabled = checkBoxReenumerate.Checked;
+            numericUpDownMaxKeptRenamedFileCount.Enabled = checkBoxReenumerate.Checked;
         }
     }
 }

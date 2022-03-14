@@ -11,21 +11,10 @@ using FileControlUtility;
 
 namespace BackupHelper
 {
-    public enum ListViewOptionSubItemIndex
-    {
-        INDEX_SOURCE_PATH = 0,
-        INDEX_DESTINY_PATH = 1,
-        INDEX_METHOD = 2,
-        INDEX_MOVE_SUBFOLDER = 3,
-        INDEX_KEEP_ORIGIN_FILES = 4,
-        INDEX_CLEAN_DESTINY = 5,
-        INDEX_REMOVE_COMMON = 6
-    }
-
     public partial class FormOptionsMenu : Form
     {
         public readonly Profile Profile;
-        public List<Option> Options;
+        public List<Options> Options;
         private readonly FormProfileMenu ProfileMenu;
         public FileControlImpl FileControl;
         private Thread ExecutionThread;
@@ -181,7 +170,7 @@ namespace BackupHelper
             {
                 Options = DBAccess.ListProfileOptions(Profile).OrderBy(o => o.ListViewIndex).ToList();
 
-                foreach (Option option in Options)
+                foreach (Options option in Options)
                 {
                     ListViewItem item = new ListViewItem();
                     EditListViewItem(option, item);
@@ -200,7 +189,7 @@ namespace BackupHelper
         {
             foreach (ListViewItem item in listViewOptions.Items)
             {
-                Option option = Options.Find(o => o.Id == (int)item.Tag);
+                Options option = Options.Find(o => o.Id == (int)item.Tag);
 
                 if (option.ListViewIndex != item.Index)
                 {
@@ -225,7 +214,7 @@ namespace BackupHelper
         {
             try
             {
-                FormEditOption form = new FormEditOption(this);
+                FormEditOptions form = new FormEditOptions(this);
                 form.Show();
             }
             catch (Exception e)
@@ -239,8 +228,8 @@ namespace BackupHelper
             try
             {
                 ListViewItem item = listViewOptions.SelectedItems[0];
-                Option option = Options.Find(o => o.Id == (int)item.Tag);
-                FormEditOption edit = new FormEditOption(this, option);
+                Options option = Options.Find(o => o.Id == (int)item.Tag);
+                FormEditOptions edit = new FormEditOptions(this, option);
                 edit.Show(this);
             }
             catch (ArgumentOutOfRangeException)
@@ -253,7 +242,7 @@ namespace BackupHelper
             }
         }
 
-        public void EditListViewItem(Option option, ListViewItem item = null)
+        public void EditListViewItem(Options option, ListViewItem item = null)
         {
             if (item == null)
                 item = GetListViewItemById(option.Id);
@@ -267,10 +256,11 @@ namespace BackupHelper
             item.SubItems.AddRange(new string[] {
                 option.DestinyPath,
                 transferMethod,
-                option.MoveSubFolders.ToString(),
+                option.IncludeSubFolders.ToString(),
                 option.KeepOriginFiles.ToString(),
                 option.CleanDestinyDirectory.ToString(),
-                option.DeleteUncommonFiles.ToString()
+                option.DeleteUncommonFiles.ToString(),
+                option.ReenumerateRenamedFiles.ToString()
             });
             
             item.Tag = option.Id;
@@ -369,8 +359,8 @@ namespace BackupHelper
                 buttonCancel.Visible = true;
                 buttonCancel.BackColor = Color.FromArgb(255, 128, 128);
 
-                List<Option> options = Options.OrderBy(o => o.ListViewIndex).Select(o => o.Clone()).ToList();
-                foreach (Option o in options)
+                List<Options> options = Options.OrderBy(o => o.ListViewIndex).Select(o => o.Clone()).ToList();
+                foreach (Options o in options)
                 {
                     if (!o.AllowIgnoreFileExt) o.SpecifiedFileNamesAndExtensions.Clear(); //-- Names must be ignored
                     o.SourcePath = Environment.ExpandEnvironmentVariables(o.SourcePath);
@@ -411,7 +401,7 @@ namespace BackupHelper
                         buttonShowResult.Enabled = true;
                         Enabled = true;
 
-                        ProfileMenu.LastReport = new FormReport(this, FileControl.TransFilesReports, FileControl.NotTransFilesReports,
+                        ProfileMenu.LastReport = new FormReport(this, FileControl.TransferedFilesReports, FileControl.NotTransferedFilesReports,
                             FileControl.RenamedFilesReports, FileControl.CreatedDirReports, FileControl.ReplacedFilesReports, 
                             FileControl.RemovedFilesAndDirReports);
                         
@@ -467,7 +457,8 @@ namespace BackupHelper
 
         private void ToolStripMenuItemCopyDestinyPath_Click(object sender, EventArgs e)
         {
-            CopyToClipboard(listViewOptions.SelectedItems[0].SubItems[(int)ListViewOptionSubItemIndex.INDEX_DESTINY_PATH].Text);
+            //CopyToClipboard(listViewOptions.SelectedItems[0].SubItems[(int)ListViewOptionSubItemIndex.INDEX_DESTINY_PATH].Text);
+            CopyToClipboard(Options.Find(o => o.Id == (int)listViewOptions.SelectedItems[0].Tag).DestinyPath);
         }
 
         private void ToolStripMenuItemOpenSourceFolder_Click(object sender, EventArgs e)
@@ -478,7 +469,8 @@ namespace BackupHelper
         private void ToolStripMenuItemOpenDestinyFolder_Click(object sender, EventArgs e)
         {
             OpenFolder(Environment.ExpandEnvironmentVariables(
-                listViewOptions.SelectedItems[0].SubItems[(int)ListViewOptionSubItemIndex.INDEX_DESTINY_PATH].Text));
+                //listViewOptions.SelectedItems[0].SubItems[(int)ListViewOptionSubItemIndex.INDEX_DESTINY_PATH].Text));
+                Options.Find(o => o.Id == (int)listViewOptions.SelectedItems[0].Tag).DestinyPath));
         }
 
         //private void ListViewOptions_DoubleClick(object sender, EventArgs args)
@@ -637,9 +629,9 @@ namespace BackupHelper
         {
             try
             {
-                Option selectedOption = Options.Find(o => o.Id == (int)listViewOptions.SelectedItems[0].Tag);
+                Options selectedOption = Options.Find(o => o.Id == (int)listViewOptions.SelectedItems[0].Tag);
 
-                Option clonedOption = selectedOption.Clone();
+                Options clonedOption = selectedOption.Clone();
                 clonedOption.ListViewIndex = listViewOptions.Items.Count;
                 DBAccess.AddOption(clonedOption);
                 Options.Add(clonedOption);

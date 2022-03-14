@@ -1,5 +1,6 @@
 ﻿using FileControlUtility;
 using System;
+using System.IO;
 
 namespace BackupHelper
 {
@@ -12,12 +13,13 @@ namespace BackupHelper
             this.showDialogs = showDialogs;
         }
 
-        public override void HandleCurrentFileExecution(string trimmedPathWithFileName)
+        protected override void HandleCurrentFileExecution(string trimmedPathWithFileName, FileInfo originFile, string destinyDir, TransferSettings settings)
         {
-            Console.WriteLine($"Transfering: {trimmedPathWithFileName}");
+            //Console.WriteLine($"Transfering: {trimmedPathWithFileName}");
         }
 
-        public override FileTransferErrorActionNonRepeatable HandleErrorDialogNonRepeatable(string errorMessage, Exception e, string originFile, string destinyFile)
+        protected override FileTransferErrorActionNonRepeatable HandleTransferErrorNonRepeatable(string errorMessage, Exception e, FileInfo originFile, 
+            string destinyDir, TransferSettings settings)
         {
             if (!showDialogs) return FileTransferErrorActionNonRepeatable.JUMP;
 
@@ -26,7 +28,8 @@ namespace BackupHelper
             return (FileTransferErrorActionNonRepeatable)form.Result;
         }
 
-        public override FileTransferErrorActionRepeatable HandleErrorDialogRepeatable(string errorMessage, Exception e, string originFile, string destinyFile)
+        protected override FileTransferErrorActionRepeatable HandleTransferErrorRepeatable(string errorMessage, Exception e, FileInfo originFile, 
+            string destinyDir, TransferSettings settings)
         {
             if (!showDialogs) return FileTransferErrorActionRepeatable.JUMP;
 
@@ -35,7 +38,7 @@ namespace BackupHelper
             return (FileTransferErrorActionRepeatable)form.Result;
         }
 
-        public override void HandleLogMessage(string logMessage)
+        protected override void HandleLogMessage(string logMessage)
         {
             LogManager.WriteLine(logMessage);
         }

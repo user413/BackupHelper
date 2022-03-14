@@ -40,6 +40,7 @@ namespace BackupHelper
             this.columnHeaderKeepOrigin = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderCleanDestinyDir = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderDeleteUncommonFiles = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderReorganizeFiles = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStripOptionsList = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.cloneOptionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ToolStripMenuItemRemove = new System.Windows.Forms.ToolStripMenuItem();
@@ -60,7 +61,7 @@ namespace BackupHelper
             // buttonAddOption
             // 
             this.buttonAddOption.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonAddOption.Location = new System.Drawing.Point(0, 224);
+            this.buttonAddOption.Location = new System.Drawing.Point(1, 224);
             this.buttonAddOption.Name = "buttonAddOption";
             this.buttonAddOption.Size = new System.Drawing.Size(95, 30);
             this.buttonAddOption.TabIndex = 1;
@@ -82,7 +83,8 @@ namespace BackupHelper
             this.columnHeaderMoveSubfolders,
             this.columnHeaderKeepOrigin,
             this.columnHeaderCleanDestinyDir,
-            this.columnHeaderDeleteUncommonFiles});
+            this.columnHeaderDeleteUncommonFiles,
+            this.columnHeaderReorganizeFiles});
             this.listViewOptions.ContextMenuStrip = this.contextMenuStripOptionsList;
             this.listViewOptions.FullRowSelect = true;
             this.listViewOptions.GridLines = true;
@@ -91,7 +93,7 @@ namespace BackupHelper
             this.listViewOptions.Location = new System.Drawing.Point(0, 0);
             this.listViewOptions.Name = "listViewOptions";
             this.listViewOptions.ShowItemToolTips = true;
-            this.listViewOptions.Size = new System.Drawing.Size(1072, 224);
+            this.listViewOptions.Size = new System.Drawing.Size(1163, 224);
             this.listViewOptions.TabIndex = 0;
             this.listViewOptions.UseCompatibleStateImageBehavior = false;
             this.listViewOptions.View = System.Windows.Forms.View.Details;
@@ -115,22 +117,27 @@ namespace BackupHelper
             // columnHeaderMoveSubfolders
             // 
             this.columnHeaderMoveSubfolders.Text = "Move Subfolders";
-            this.columnHeaderMoveSubfolders.Width = 75;
+            this.columnHeaderMoveSubfolders.Width = 80;
             // 
             // columnHeaderKeepOrigin
             // 
             this.columnHeaderKeepOrigin.Text = "Keep Origin Files";
-            this.columnHeaderKeepOrigin.Width = 75;
+            this.columnHeaderKeepOrigin.Width = 80;
             // 
             // columnHeaderCleanDestinyDir
             // 
             this.columnHeaderCleanDestinyDir.Text = "Clean Dest. Dir.";
-            this.columnHeaderCleanDestinyDir.Width = 75;
+            this.columnHeaderCleanDestinyDir.Width = 80;
             // 
             // columnHeaderDeleteUncommonFiles
             // 
             this.columnHeaderDeleteUncommonFiles.Text = "Del. Uncommon Files";
-            this.columnHeaderDeleteUncommonFiles.Width = 75;
+            this.columnHeaderDeleteUncommonFiles.Width = 80;
+            // 
+            // columnHeaderReorganizeFiles
+            // 
+            this.columnHeaderReorganizeFiles.Text = "Reorg. renamed files";
+            this.columnHeaderReorganizeFiles.Width = 80;
             // 
             // contextMenuStripOptionsList
             // 
@@ -193,7 +200,7 @@ namespace BackupHelper
             this.buttonExecute.BackColor = System.Drawing.Color.White;
             this.buttonExecute.FlatAppearance.BorderColor = System.Drawing.Color.Red;
             this.buttonExecute.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.buttonExecute.Location = new System.Drawing.Point(94, 224);
+            this.buttonExecute.Location = new System.Drawing.Point(95, 224);
             this.buttonExecute.Name = "buttonExecute";
             this.buttonExecute.Size = new System.Drawing.Size(95, 30);
             this.buttonExecute.TabIndex = 4;
@@ -206,10 +213,10 @@ namespace BackupHelper
             this.progressBarOptions.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.progressBarOptions.Enabled = false;
-            this.progressBarOptions.Location = new System.Drawing.Point(0, 252);
+            this.progressBarOptions.Location = new System.Drawing.Point(0, 254);
             this.progressBarOptions.Maximum = 10000;
             this.progressBarOptions.Name = "progressBarOptions";
-            this.progressBarOptions.Size = new System.Drawing.Size(1072, 12);
+            this.progressBarOptions.Size = new System.Drawing.Size(1163, 12);
             this.progressBarOptions.TabIndex = 4;
             // 
             // buttonCancel
@@ -219,7 +226,7 @@ namespace BackupHelper
             this.buttonCancel.FlatAppearance.BorderColor = System.Drawing.Color.Red;
             this.buttonCancel.FlatAppearance.BorderSize = 2;
             this.buttonCancel.ForeColor = System.Drawing.Color.White;
-            this.buttonCancel.Location = new System.Drawing.Point(977, 224);
+            this.buttonCancel.Location = new System.Drawing.Point(1068, 224);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(95, 30);
             this.buttonCancel.TabIndex = 8;
@@ -249,7 +256,7 @@ namespace BackupHelper
             this.textBoxTransfering.Location = new System.Drawing.Point(85, 233);
             this.textBoxTransfering.Name = "textBoxTransfering";
             this.textBoxTransfering.ReadOnly = true;
-            this.textBoxTransfering.Size = new System.Drawing.Size(873, 13);
+            this.textBoxTransfering.Size = new System.Drawing.Size(964, 13);
             this.textBoxTransfering.TabIndex = 7;
             this.textBoxTransfering.Visible = false;
             // 
@@ -257,7 +264,7 @@ namespace BackupHelper
             // 
             this.buttonShowResult.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonShowResult.Enabled = false;
-            this.buttonShowResult.Location = new System.Drawing.Point(964, 224);
+            this.buttonShowResult.Location = new System.Drawing.Point(1054, 224);
             this.buttonShowResult.Name = "buttonShowResult";
             this.buttonShowResult.Size = new System.Drawing.Size(108, 30);
             this.buttonShowResult.TabIndex = 8;
@@ -271,7 +278,7 @@ namespace BackupHelper
             this.checkBoxShowResult.AutoSize = true;
             this.checkBoxShowResult.Checked = true;
             this.checkBoxShowResult.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxShowResult.Location = new System.Drawing.Point(821, 232);
+            this.checkBoxShowResult.Location = new System.Drawing.Point(912, 232);
             this.checkBoxShowResult.Name = "checkBoxShowResult";
             this.checkBoxShowResult.Size = new System.Drawing.Size(137, 17);
             this.checkBoxShowResult.TabIndex = 7;
@@ -283,7 +290,7 @@ namespace BackupHelper
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(1072, 261);
+            this.ClientSize = new System.Drawing.Size(1163, 261);
             this.Controls.Add(this.checkBoxShowResult);
             this.Controls.Add(this.textBoxTransfering);
             this.Controls.Add(this.labelTransfering);
@@ -329,5 +336,6 @@ namespace BackupHelper
         private System.Windows.Forms.ToolStripMenuItem cloneOptionToolStripMenuItem;
         public ListView listViewOptions;
         private ToolStripMenuItem ToolStripMenuItemRemove;
+        private ColumnHeader columnHeaderReorganizeFiles;
     }
 }

@@ -2,37 +2,39 @@
 drop table if exists option;
 drop table if exists profile;
 
-CREATE TABLE profile (
-	profile_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-	profile_listview_index INTEGER NOT NULL,
-	profile_name text NOT NULL,
-	profile_time_created text NOT NULL,
-	profile_last_time_modified text NOT NULL,
-	profile_last_time_executed text NOT NULL,
+create table profile (
+	profile_id integer primary key autoincrement not null,
+	profile_listview_index integer not null,
+	profile_name text not null,
+	profile_time_created text not null,
+	profile_last_time_modified text not null,
+	profile_last_time_executed text not null,
 	profile_group text not null
 );
 
-CREATE TABLE option (
-	opt_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-	profile_id INTEGER NOT NULL,
-	opt_listview_index INTEGER NOT NULL,
-	opt_source_path text NOT NULL,
-	opt_destiny_path text NOT NULL,
-	opt_move_subfolders tinyint NOT NULL,
-	opt_keep_origin_files tinyint NOT NULL,
-	opt_clean_destiny_dir tinyint NOT NULL,
-	opt_delete_uncommon_files tinyint NOT NULL,
-	opt_allowignore_file_ext tinyint not null,
-	opt_spec_filenames_and_exts_mode tinyint not null,
-	opt_filename_conflict_method tinyint not null,
-	FOREIGN KEY (profile_id) REFERENCES profile (profile_id)
+create table option (
+	opt_id integer primary key autoincrement not null,
+	profile_id integer not null,
+	opt_listview_index integer not null,
+	opt_source_path text not null,
+	opt_destiny_path text not null,
+	opt_include_subfolders integer not null,
+	opt_keep_origin_files integer not null,
+	opt_clean_destiny_dir integer not null,
+	opt_delete_uncommon_files integer not null,
+	opt_allowignore_file_ext integer not null,
+	opt_spec_filenames_and_exts_mode integer not null,
+	opt_filename_conflict_method integer not null,
+	opt_reenumerate_renamed_files integer not null, -- added
+	opt_max_kept_renamed_file_count integer not null, -- added
+	foreign key (profile_id) references profile (profile_id)
 );
 
-CREATE TABLE specified_file_or_ext (
-	spec_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-	opt_id INTEGER NOT NULL,
-	spec_name text NOT NULL,
-	FOREIGN KEY (opt_id) REFERENCES option (opt_id)
+create table specified_file_or_ext (
+	spec_id integer primary key autoincrement not null,
+	opt_id integer not null,
+	spec_name text not null,
+	foreign key (opt_id) references option (opt_id)
 );
 
 delete from sqlite_sequence;

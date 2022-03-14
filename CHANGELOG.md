@@ -1,3 +1,14 @@
+## 1.4.0
+
+Database not compatible with previous version
+
+New features:
+- Options to re-enumerate and limit the quantity of files enumerated with the pattern <name> (<number>)<extension> (rename different files) - adapted to FileControlUtility v1.1.0 library
+
+Fixes/changes:
+- Display log text on cmd window when executing profiles through parameters - fix
+- Ignored files log and report text - fix
+
 ## 1.3.0
 
 Database compatible with previous version

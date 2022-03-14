@@ -1,6 +1,5 @@
 ﻿using BackupHelper.model;
 using FileControlUtility;
-using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 
@@ -90,13 +89,13 @@ namespace BackupHelper
                     {
                         Profile prof = new Profile
                         {
-                            Id = int.Parse(reader["profile_id"].ToString()),
-                            ListViewIndex = int.Parse(reader["profile_listview_index"].ToString()),
-                            Name = reader["profile_name"].ToString(),
-                            TimeCreated = DateTime.Parse(reader["profile_time_created"].ToString()),
-                            LastTimeModified = DateTime.Parse(reader["profile_last_time_modified"].ToString()),
-                            LastTimeExecuted = DateTime.Parse(reader["profile_last_time_executed"].ToString()),
-                            GroupName = reader["profile_group"].ToString()
+                            Id = reader.GetInt32(reader.GetOrdinal("profile_id")),
+                            ListViewIndex = reader.GetInt32(reader.GetOrdinal("profile_listview_index")),
+                            Name = reader.GetString(reader.GetOrdinal("profile_name")),
+                            TimeCreated = reader.GetDateTime(reader.GetOrdinal("profile_time_created")),
+                            LastTimeModified = reader.GetDateTime(reader.GetOrdinal("profile_last_time_modified")),
+                            LastTimeExecuted = reader.GetDateTime(reader.GetOrdinal("profile_last_time_executed")),
+                            GroupName = reader.GetString(reader.GetOrdinal("profile_group"))
                         };
 
                         profiles.Add(prof);
@@ -137,13 +136,13 @@ namespace BackupHelper
             }
         }
 
-        public static void AddOption(Option option)
+        public static void AddOption(Options option)
         {
-            string insertOptionCmdText = "insert into option(profile_id,opt_listview_index,opt_source_path,opt_destiny_path,opt_move_subfolders," +
+            string insertOptionCmdText = "insert into option(profile_id,opt_listview_index,opt_source_path,opt_destiny_path,opt_include_subfolders," +
                 "opt_keep_origin_files,opt_clean_destiny_dir,opt_delete_uncommon_files,opt_allowignore_file_ext,opt_spec_filenames_and_exts_mode," +
-                "opt_filename_conflict_method) values(" +
+                "opt_filename_conflict_method,opt_reenumerate_renamed_files,opt_max_kept_renamed_file_count) values(" +
                 "@profileId,@listviewIndex,@sourcePath,@destinyPath,@moveSubfolders,@keepOrigin,@cleanDestinyDir,@deleteUncommonFiles," +
-                "@allowIgnoreFileExt,@specFilenamesAndExtsMode,@filenameConflictMethod)";
+                "@allowIgnoreFileExt,@specFilenamesAndExtsMode,@filenameConflictMethod,@opt_reenumerate_renamed_files,@opt_max_kept_renamed_file_count)";
 
             string queryOptionLastInsertedIdCmdText = "select last_insert_rowid()";
             string insertSpecifiedFileOrExtCmdText = "insert into specified_file_or_ext(opt_id,spec_name) values (@id,@specName)";
@@ -157,13 +156,15 @@ namespace BackupHelper
                 insertOptionCmd.Parameters.AddWithValue("@listviewIndex", option.ListViewIndex);
                 insertOptionCmd.Parameters.AddWithValue("@sourcePath", option.SourcePath);
                 insertOptionCmd.Parameters.AddWithValue("@destinyPath", option.DestinyPath);
-                insertOptionCmd.Parameters.AddWithValue("@moveSubfolders", option.MoveSubFolders);
+                insertOptionCmd.Parameters.AddWithValue("@moveSubfolders", option.IncludeSubFolders);
                 insertOptionCmd.Parameters.AddWithValue("@keepOrigin", option.KeepOriginFiles);
                 insertOptionCmd.Parameters.AddWithValue("@cleanDestinyDir", option.CleanDestinyDirectory);
                 insertOptionCmd.Parameters.AddWithValue("@deleteUncommonFiles", option.DeleteUncommonFiles);
                 insertOptionCmd.Parameters.AddWithValue("@allowIgnoreFileExt", option.AllowIgnoreFileExt);
                 insertOptionCmd.Parameters.AddWithValue("@specFilenamesAndExtsMode", option.SpecifiedFileNamesOrExtensionsMode);
                 insertOptionCmd.Parameters.AddWithValue("@filenameConflictMethod", option.FileNameConflictMethod);
+                insertOptionCmd.Parameters.AddWithValue("@opt_reenumerate_renamed_files", option.ReenumerateRenamedFiles);
+                insertOptionCmd.Parameters.AddWithValue("@opt_max_kept_renamed_file_count", option.MaxKeptRenamedFileCount);
                 insertOptionCmd.ExecuteNonQuery();
 
                 using (SQLiteDataReader reader = queryOptionLastInsertedIdCmd.ExecuteReader())
@@ -181,12 +182,13 @@ namespace BackupHelper
             }
         }
 
-        public static void UpdateOption(Option opt)
+        public static void UpdateOption(Options opt)
         {            
             string updateOptionCmdText = "update option set opt_listview_index=@listviewIndex,opt_source_path=@source,opt_destiny_path=@destiny," +
-                "opt_move_subfolders=@moveSubf,opt_keep_origin_files=@keepOrigin,opt_clean_destiny_dir=@cleanDestinyDir,opt_allowignore_file_ext=" +
+                "opt_include_subfolders=@moveSubf,opt_keep_origin_files=@keepOrigin,opt_clean_destiny_dir=@cleanDestinyDir,opt_allowignore_file_ext=" +
                 "@allowIgnoreFileExt,opt_delete_uncommon_files=@deleteUncommonFiles,opt_spec_filenames_and_exts_mode=@specFilenamesAndExtsMode," +
-                "opt_filename_conflict_method=@filenameConflictMethod " +
+                "opt_filename_conflict_method=@filenameConflictMethod,opt_reenumerate_renamed_files=@opt_reenumerate_renamed_files," +
+                "opt_max_kept_renamed_file_count=@opt_max_kept_renamed_file_count " +
                 "where profile_id=@profileId and opt_id=@optId";
 
             string deleteSpecifiedFilesAndExtsCmdText = "delete from specified_file_or_ext where opt_id = @id";
@@ -200,13 +202,15 @@ namespace BackupHelper
                 updateOptionCmd.Parameters.AddWithValue("@listviewIndex", opt.ListViewIndex);
                 updateOptionCmd.Parameters.AddWithValue("@source", opt.SourcePath);
                 updateOptionCmd.Parameters.AddWithValue("@destiny", opt.DestinyPath);
-                updateOptionCmd.Parameters.AddWithValue("@moveSubf", opt.MoveSubFolders);
+                updateOptionCmd.Parameters.AddWithValue("@moveSubf", opt.IncludeSubFolders);
                 updateOptionCmd.Parameters.AddWithValue("@keepOrigin", opt.KeepOriginFiles);
                 updateOptionCmd.Parameters.AddWithValue("@cleanDestinyDir", opt.CleanDestinyDirectory);
                 updateOptionCmd.Parameters.AddWithValue("@allowIgnoreFileExt", opt.AllowIgnoreFileExt);
                 updateOptionCmd.Parameters.AddWithValue("@deleteUncommonFiles", opt.DeleteUncommonFiles);
                 updateOptionCmd.Parameters.AddWithValue("@specFilenamesAndExtsMode", opt.SpecifiedFileNamesOrExtensionsMode);
                 updateOptionCmd.Parameters.AddWithValue("@filenameConflictMethod", opt.FileNameConflictMethod);
+                updateOptionCmd.Parameters.AddWithValue("@opt_reenumerate_renamed_files", opt.ReenumerateRenamedFiles);
+                updateOptionCmd.Parameters.AddWithValue("@opt_max_kept_renamed_file_count", opt.MaxKeptRenamedFileCount);
                 updateOptionCmd.Parameters.AddWithValue("@profileId", opt.Profile.Id);
                 updateOptionCmd.Parameters.AddWithValue("@optId", opt.Id);
 
@@ -224,7 +228,7 @@ namespace BackupHelper
             }
         }
 
-        public static void UpdateOptionListViewIndex(Option opt)
+        public static void UpdateOptionListViewIndex(Options opt)
         {
             string updateOptionCmdText = "update option set opt_listview_index=@listviewIndex where opt_id=@optId";
 
@@ -236,16 +240,16 @@ namespace BackupHelper
             }
         }
 
-        public static List<Option> ListProfileOptions(Profile prof)
+        public static List<Options> ListProfileOptions(Profile prof)
         {
-            List<Option> options = new List<Option>();
+            List<Options> options = new List<Options>();
 
-            string queryOptionCmdText = "select opt_id,opt_listview_index,opt_source_path,opt_destiny_path,opt_move_subfolders," +
+            string queryOptionCmdText = "select opt_id,opt_listview_index,opt_source_path,opt_destiny_path,opt_include_subfolders," +
                 "opt_keep_origin_files,opt_clean_destiny_dir,opt_delete_uncommon_files,opt_allowignore_file_ext,opt_spec_filenames_and_exts_mode," +
-                "opt_filename_conflict_method" +
+                "opt_filename_conflict_method,opt_reenumerate_renamed_files,opt_max_kept_renamed_file_count " +
                 " from option where profile_id=@profileId";
 
-            string querySpecifiedFilesAndExtsCmdText = "select spec_name from specified_file_or_ext where opt_id =@optId";
+            string querySpecifiedFilesAndExtsCmdText = "select spec_name from specified_file_or_ext where opt_id=@optId";
 
             using (var queryOptionCmd = new SQLiteCommand(queryOptionCmdText, cn))
             using (var querySpecifiedFilesAndExtsCmd = new SQLiteCommand(querySpecifiedFilesAndExtsCmdText, cn))
@@ -256,20 +260,22 @@ namespace BackupHelper
                 {
                     while (reader1.Read())
                     {
-                        Option opt = new Option
+                        Options opt = new Options
                         {
                             Profile = prof,
-                            Id = int.Parse(reader1["opt_id"].ToString()),
-                            ListViewIndex = int.Parse(reader1["opt_listview_index"].ToString()),
-                            SourcePath = reader1["opt_source_path"].ToString(),
-                            DestinyPath = reader1["opt_destiny_path"].ToString(),
-                            MoveSubFolders = Convert.ToBoolean(int.Parse(reader1["opt_move_subfolders"].ToString())),
-                            KeepOriginFiles = Convert.ToBoolean(int.Parse(reader1["opt_keep_origin_files"].ToString())),
-                            CleanDestinyDirectory = Convert.ToBoolean(int.Parse(reader1["opt_clean_destiny_dir"].ToString())),
-                            DeleteUncommonFiles = Convert.ToBoolean(int.Parse(reader1["opt_delete_uncommon_files"].ToString())),
-                            AllowIgnoreFileExt = Convert.ToBoolean(int.Parse(reader1["opt_allowignore_file_ext"].ToString())),
-                            FileNameConflictMethod = (FileNameConflictMethod)int.Parse(reader1["opt_filename_conflict_method"].ToString()),
-                            SpecifiedFileNamesOrExtensionsMode = (SpecifiedFileNamesAndExtensionsMode)int.Parse(reader1["opt_spec_filenames_and_exts_mode"].ToString())
+                            Id = reader1.GetInt32(reader1.GetOrdinal("opt_id")),
+                            ListViewIndex = reader1.GetInt32(reader1.GetOrdinal("opt_listview_index")),
+                            SourcePath = reader1.GetString(reader1.GetOrdinal("opt_source_path")),
+                            DestinyPath = reader1.GetString(reader1.GetOrdinal("opt_destiny_path")),
+                            IncludeSubFolders = reader1.GetBoolean(reader1.GetOrdinal("opt_include_subfolders")),
+                            KeepOriginFiles = reader1.GetBoolean(reader1.GetOrdinal("opt_keep_origin_files")),
+                            CleanDestinyDirectory = reader1.GetBoolean(reader1.GetOrdinal("opt_clean_destiny_dir")),
+                            DeleteUncommonFiles = reader1.GetBoolean(reader1.GetOrdinal("opt_delete_uncommon_files")),
+                            AllowIgnoreFileExt = reader1.GetBoolean(reader1.GetOrdinal("opt_allowignore_file_ext")),
+                            FileNameConflictMethod = (FileNameConflictMethod)reader1.GetInt32(reader1.GetOrdinal("opt_filename_conflict_method")),
+                            SpecifiedFileNamesOrExtensionsMode = (SpecifiedFileNamesAndExtensionsMode)reader1.GetInt32(reader1.GetOrdinal("opt_spec_filenames_and_exts_mode")),
+                            ReenumerateRenamedFiles = reader1.GetBoolean(reader1.GetOrdinal("opt_reenumerate_renamed_files")),
+                            MaxKeptRenamedFileCount = reader1.GetInt32(reader1.GetOrdinal("opt_max_kept_renamed_file_count"))
                         };
 
                         querySpecifiedFilesAndExtsCmd.Parameters.AddWithValue("@optId", opt.Id);
@@ -288,7 +294,7 @@ namespace BackupHelper
             return options;
         }
 
-        public static void DeleteOption(Option option)
+        public static void DeleteOption(Options option)
         {
             string deleteOptionCmdText = "delete from option where opt_id=@optId";
             string deleteSpecifiedFilesAndExtsCmdText = "delete from specified_file_or_ext where opt_id = @optId";

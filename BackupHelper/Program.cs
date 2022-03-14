@@ -6,12 +6,15 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace BackupHelper
 {
     static class Program
     {
+        [DllImport("Kernel32.dll")]
+        static extern bool AttachConsole(int processId);
 
         public static string DBPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\backup_helper.db";
         public static FormProfileMenu ProfileMenu;
@@ -19,11 +22,8 @@ namespace BackupHelper
         [STAThread]
         static void Main(string[] args)
         {
-            //args = new string[] { "new:w", "s"};
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
-            //MessageBox.Show($"Error: \"{e.Message}\" while retrieving database data.");
 
             if (args.Length > 0)
             {
@@ -58,6 +58,8 @@ namespace BackupHelper
                         return;
                     }
 
+                    //-- Set parent process as the console
+                    AttachConsole(-1);
                     LogManager.WriteLine("Starting transfer from parameters...");
 
                     List<Profile> profiles = DBAccess.ListProfiles();
@@ -101,7 +103,7 @@ namespace BackupHelper
                             LogManager.WriteLine($"Working on profile \"{profileName}\"");
                             profile.Options = DBAccess.ListProfileOptions(profile).OrderBy(o => o.ListViewIndex).ToList();
 
-                            foreach (Option o in profile.Options)
+                            foreach (Options o in profile.Options)
                             {
                                 if (!o.AllowIgnoreFileExt) o.SpecifiedFileNamesAndExtensions.Clear(); //-- Names must be ignored
                                 o.SourcePath = Environment.ExpandEnvironmentVariables(o.SourcePath);
@@ -157,8 +159,7 @@ namespace BackupHelper
             //dbc.CreateDatabase();
             //    File.Create()
             //}
-
-
+            
             Console.WriteLine("Backup Helper - Log...");
             ProfileMenu = new FormProfileMenu();
             Application.Run(ProfileMenu);
@@ -169,10 +170,8 @@ namespace BackupHelper
             Process currentProcess = Process.GetCurrentProcess();
 
             foreach (Process process in Process.GetProcessesByName(currentProcess.ProcessName))
-            {
                 if ((process.Id != currentProcess.Id) && (process.MainModule.FileName == currentProcess.MainModule.FileName))
                     return true;
-            }
 
             return false;
         }
@@ -181,16 +180,18 @@ namespace BackupHelper
         {
             profile.LastTimeModified = DateTime.Now;
             DBAccess.UpdateProfile(profile);
-            if (ProfileMenu != null) ProfileMenu.GetListViewItemById(profile.Id).SubItems[(int)ListViewProfileSubItemIndex.INDEX_TIME_MODIFIED].Text =
-                 profile.LastTimeModified.ToString();
+            if (ProfileMenu != null)
+                //ProfileMenu.GetListViewItemById(profile.Id).SubItems[(int)ListViewProfileSubItemIndex.INDEX_TIME_MODIFIED].Text = profile.LastTimeModified.ToString();
+                ProfileMenu.EditListViewItem(profile);
         }
 
         public static void UpdateLastTimeExecuted(Profile profile)
         {
             profile.LastTimeExecuted = DateTime.Now;
             DBAccess.UpdateProfile(profile);
-            if (ProfileMenu != null) ProfileMenu.GetListViewItemById(profile.Id).SubItems[(int)ListViewProfileSubItemIndex.INDEX_TIME_EXECUTED].Text =
-                 profile.LastTimeExecuted.ToString();
+            if (ProfileMenu != null)
+                //ProfileMenu.GetListViewItemById(profile.Id).SubItems[(int)ListViewProfileSubItemIndex.INDEX_TIME_EXECUTED].Text = profile.LastTimeExecuted.ToString();
+                ProfileMenu.EditListViewItem(profile);
         }
     }
 }
