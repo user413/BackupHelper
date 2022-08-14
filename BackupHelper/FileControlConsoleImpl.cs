@@ -21,7 +21,7 @@ namespace BackupHelper
         protected override FileTransferErrorActionNonRepeatable HandleTransferErrorNonRepeatable(string errorMessage, Exception e, FileInfo originFile, 
             string destinyDir, TransferSettings settings)
         {
-            if (!showDialogs) return FileTransferErrorActionNonRepeatable.JUMP;
+            if (!showDialogs) return FileTransferErrorActionNonRepeatable.SKIP;
 
             FormErrorDialog form = new FormErrorDialog(typeof(FileTransferErrorActionNonRepeatable), errorMessage);
             form.ShowDialog();
@@ -31,7 +31,7 @@ namespace BackupHelper
         protected override FileTransferErrorActionRepeatable HandleTransferErrorRepeatable(string errorMessage, Exception e, FileInfo originFile, 
             string destinyDir, TransferSettings settings)
         {
-            if (!showDialogs) return FileTransferErrorActionRepeatable.JUMP;
+            if (!showDialogs) return FileTransferErrorActionRepeatable.SKIP;
 
             FormErrorDialog form = new FormErrorDialog(typeof(FileTransferErrorActionRepeatable), errorMessage);
             form.ShowDialog();

@@ -19,8 +19,19 @@ namespace BackupHelper
         private readonly FormOptionsMenu OptionsMenu;
         public Options Option;
         private readonly FormAction FormAction = FormAction.CREATE;
+        private static FormEditOptions Instance = null;
 
-        public FormEditOptions(FormOptionsMenu optionsMenu, Options option = null)
+        public static FormEditOptions GetInstance(FormOptionsMenu optionsMenu, Options option = null)
+        {
+            if (Instance != null && Instance.IsHandleCreated && option != Instance.Option) Instance.Close();
+
+            if (Instance == null || !Instance.IsHandleCreated)
+                Instance = new FormEditOptions(optionsMenu, option);
+
+            return Instance;
+        }
+
+        private FormEditOptions(FormOptionsMenu optionsMenu, Options option = null)
         {
             InitializeComponent();
 
@@ -65,7 +76,7 @@ namespace BackupHelper
                 checkBoxCleanDestinyDirectory.Checked = option.CleanDestinyDirectory;
                 checkBoxDeleteUncommonFiles.Checked = option.DeleteUncommonFiles;
                 checkBoxManageFileNamesAndExtensions.Checked = option.AllowIgnoreFileExt;
-                radioButtonIgnore.Checked = option.SpecifiedFileNamesOrExtensionsMode == SpecifiedFileNamesAndExtensionsMode.IGNORE;
+                radioButtonIgnore.Checked = option.SpecifiedFileNamesOrExtensionsMode == SpecifiedEntriesMode.IGNORE;
                 checkBoxReenumerate.Checked = option.ReenumerateRenamedFiles;
                 numericUpDownMaxKeptRenamedFileCount.Value = option.MaxKeptRenamedFileCount;
 
@@ -185,8 +196,8 @@ namespace BackupHelper
             editedOption.SourcePath = textBoxSourcePath.Text;
             editedOption.DestinyPath = textBoxDestinyPath.Text;
             editedOption.FileNameConflictMethod = (FileNameConflictMethod)comboBoxMethod.SelectedIndex;
-            editedOption.SpecifiedFileNamesOrExtensionsMode = radioButtonIgnore.Checked ? SpecifiedFileNamesAndExtensionsMode.IGNORE :
-                SpecifiedFileNamesAndExtensionsMode.ALLOW_ONLY;
+            editedOption.SpecifiedFileNamesOrExtensionsMode = radioButtonIgnore.Checked ? SpecifiedEntriesMode.IGNORE :
+                SpecifiedEntriesMode.ALLOW_ONLY;
             editedOption.IncludeSubFolders = checkBoxMoveSubfolders.Checked;
             editedOption.KeepOriginFiles = checkBoxKeepOriginFiles.Checked;
             editedOption.CleanDestinyDirectory = checkBoxCleanDestinyDirectory.Checked;

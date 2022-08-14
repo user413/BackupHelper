@@ -22,9 +22,9 @@ namespace BackupHelper
         private void ButtonErrorDialogIgnore_Click(object sender, EventArgs e)
         {
             if (ActionType == typeof(FileTransferErrorActionRepeatable))
-                Result = FileTransferErrorActionRepeatable.JUMP;
+                Result = FileTransferErrorActionRepeatable.SKIP;
             if (ActionType == typeof(FileTransferErrorActionNonRepeatable))
-                Result = FileTransferErrorActionNonRepeatable.JUMP;
+                Result = FileTransferErrorActionNonRepeatable.SKIP;
 
             Close();
         }

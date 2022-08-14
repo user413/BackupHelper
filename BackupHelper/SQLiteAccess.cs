@@ -273,7 +273,7 @@ namespace BackupHelper
                             DeleteUncommonFiles = reader1.GetBoolean(reader1.GetOrdinal("opt_delete_uncommon_files")),
                             AllowIgnoreFileExt = reader1.GetBoolean(reader1.GetOrdinal("opt_allowignore_file_ext")),
                             FileNameConflictMethod = (FileNameConflictMethod)reader1.GetInt32(reader1.GetOrdinal("opt_filename_conflict_method")),
-                            SpecifiedFileNamesOrExtensionsMode = (SpecifiedFileNamesAndExtensionsMode)reader1.GetInt32(reader1.GetOrdinal("opt_spec_filenames_and_exts_mode")),
+                            SpecifiedFileNamesOrExtensionsMode = (SpecifiedEntriesMode)reader1.GetInt32(reader1.GetOrdinal("opt_spec_filenames_and_exts_mode")),
                             ReenumerateRenamedFiles = reader1.GetBoolean(reader1.GetOrdinal("opt_reenumerate_renamed_files")),
                             MaxKeptRenamedFileCount = reader1.GetInt32(reader1.GetOrdinal("opt_max_kept_renamed_file_count"))
                         };

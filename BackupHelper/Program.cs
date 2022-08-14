@@ -111,12 +111,12 @@ namespace BackupHelper
                             }
 
                             UpdateLastTimeExecuted(profile);
-                            fileControl.ManageFiles(DBAccess.ListProfileOptions(profile).ToList<TransferSettings>());
+                            fileControl.ManageFiles(profile.Options.ToList<TransferSettings>());
                         }
                         catch (Exception e)
                         {
                             LogManager.WriteLine($"Error: {e.Message} while executing \"{profile.Name}\".");
-                            dialogMessage = $"Error: {e.Message} while executing \"{profile.Name}\". Proceed to the next profile?";
+                            dialogMessage = $"Error: \"{e.Message}\" while executing \"{profile.Name}\". Proceed to the next profile?";
                             if (showDialogs && MessageBox.Show(dialogMessage, "", MessageBoxButtons.OKCancel) == DialogResult.Cancel)
                             {
                                 LogManager.WriteLine("Transfer canceled by user.");

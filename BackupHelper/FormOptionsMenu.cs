@@ -214,8 +214,12 @@ namespace BackupHelper
         {
             try
             {
-                FormEditOptions form = new FormEditOptions(this);
-                form.Show();
+                FormEditOptions form = FormEditOptions.GetInstance(this);
+                
+                if (form.Visible)
+                    form.WindowState = FormWindowState.Normal;
+                else
+                    form.Show(this);
             }
             catch (Exception e)
             {
@@ -227,10 +231,14 @@ namespace BackupHelper
         {
             try
             {
-                ListViewItem item = listViewOptions.SelectedItems[0];
-                Options option = Options.Find(o => o.Id == (int)item.Tag);
-                FormEditOptions edit = new FormEditOptions(this, option);
-                edit.Show(this);
+                Options option = Options.Find(o => o.Id == (int)listViewOptions.SelectedItems[0].Tag);
+                
+                FormEditOptions form = FormEditOptions.GetInstance(this, option);
+
+                if (form.Visible)
+                    form.WindowState = FormWindowState.Normal;
+                else
+                    form.Show(this);
             }
             catch (ArgumentOutOfRangeException)
             {
