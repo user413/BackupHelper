@@ -348,8 +348,16 @@ namespace BackupHelper
                     return;
                 }
 
+                List<Options> options = Options.OrderBy(o => o.ListViewIndex).Select(o => o.Clone()).ToList();
+                foreach (Options o in options)
+                {
+                    if (!o.AllowIgnoreFileExt) o.SpecifiedFileNamesAndExtensions.Clear(); //-- Names must be ignored
+                    o.SourcePath = Environment.ExpandEnvironmentVariables(o.SourcePath);
+                    o.DestinyPath = Environment.ExpandEnvironmentVariables(o.DestinyPath);
+                }
+
                 FileControl = new FileControlImpl(this);
-                progressBarOptions.Maximum = FileControl.FilesTotal(Options.ToList<TransferSettings>());
+                progressBarOptions.Maximum = FileControl.FilesTotal(options.ToList<TransferSettings>());
 
                 //this.OptionIsExecuting = true;
                 LogManager.BeginWritter();
@@ -366,14 +374,6 @@ namespace BackupHelper
                 textBoxTransfering.Visible = true;
                 buttonCancel.Visible = true;
                 buttonCancel.BackColor = Color.FromArgb(255, 128, 128);
-
-                List<Options> options = Options.OrderBy(o => o.ListViewIndex).Select(o => o.Clone()).ToList();
-                foreach (Options o in options)
-                {
-                    if (!o.AllowIgnoreFileExt) o.SpecifiedFileNamesAndExtensions.Clear(); //-- Names must be ignored
-                    o.SourcePath = Environment.ExpandEnvironmentVariables(o.SourcePath);
-                    o.DestinyPath = Environment.ExpandEnvironmentVariables(o.DestinyPath);
-                }
 
                 Program.UpdateLastTimeExecuted(Profile);
 

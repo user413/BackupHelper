@@ -1,3 +1,8 @@
+## 1.4.2
+
+Fixed/altered:
+- Execution for source paths containing environment variables - fix
+	
 ## 1.4.1
 
 Fixed/altered:
