@@ -164,7 +164,7 @@ namespace BackupHelper
         //-- REMOVED FILES/DIRECTORIES CONTEXT MENU STRIP BUTTON CLICK
         private void ToolStripMenuItemCopyEntry_Click(object sender, EventArgs e)
         {
-            CopyToClipboard(listViewRemovedFilesAndDirectories.SelectedItems[0].SubItems[1].Text);
+            CopyToClipboard(listViewRemovedFilesAndDirectories.SelectedItems[0].Text);
         }
 
         private void CopyToClipboard(string text)

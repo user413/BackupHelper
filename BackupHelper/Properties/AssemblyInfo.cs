@@ -7,6 +7,6 @@ using System.Reflection;
 [assembly: AssemblyProduct("BackupHelper")]
 [assembly: AssemblyCopyright("Copyright © Nain 2021")]
 [assembly: AssemblyTrademark("Nain")]
-[assembly: AssemblyVersion("1.4.2")]
-[assembly: AssemblyFileVersion("1.4.2")]
+[assembly: AssemblyVersion("1.4.3")]
+[assembly: AssemblyFileVersion("1.4.3")]
 [assembly: NeutralResourcesLanguage("en-US")]

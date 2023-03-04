@@ -57,8 +57,8 @@
     <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FileControlUtility, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\FileControlUtility.1.2.0\lib\netstandard2.0\FileControlUtility.dll</HintPath>
+    <Reference Include="FileControlUtility, Version=1.2.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FileControlUtility.1.2.1\lib\netstandard2.0\FileControlUtility.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -141,6 +141,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormProfileMenu.resx">
       <DependentUpon>FormProfileMenu.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormReport.resx">
+      <DependentUpon>FormReport.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GroupForm.resx">
       <DependentUpon>GroupForm.cs</DependentUpon>

@@ -565,7 +565,7 @@ namespace BackupHelper
 
                 if (saveFileDialogShortcut.ShowDialog() == DialogResult.OK)
                 {
-                    string content = $"\"{Assembly.GetExecutingAssembly().Location}\" \"{string.Join(";", selectedProfiles.Select(p => p.Name))}\"";
+                    string content = $"\"{Assembly.GetExecutingAssembly().Location}\" \"{string.Join(";", selectedProfiles.Select(p => p.Name))}\"{Environment.NewLine}pause";
                     File.WriteAllText(saveFileDialogShortcut.FileName, content);
                     MessageBox.Show($"File saved as \"{saveFileDialogShortcut.FileName}\"");
                 }

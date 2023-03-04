@@ -1,3 +1,9 @@
+## 1.4.3
+
+Fixed/altered:
+- Allow transfer of paths starting with "\\" (server) - FileControlUtility 1.2.1
+- Generated profile shortcut bat file now end with "pause"
+
 ## 1.4.2
 
 Fixed/altered:
