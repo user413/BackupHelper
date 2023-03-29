@@ -1,13 +1,7 @@
 ﻿using BackupHelper.model;
 using BinanceAutoTrader;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Windows.Forms;
 
 namespace BackupHelper
 {
@@ -25,7 +19,7 @@ namespace BackupHelper
         //private readonly int MaximumListViewItemCount;
 
         //-- Clicking/dragdrop functions
-        private System.Timers.Timer ClickTimer = new System.Timers.Timer(300);
+        private readonly System.Timers.Timer ClickTimer = new(300);
         private int MouseDownCount = 0;
         private int MouseUpCount = 0;
         private ListViewItem ClickedItem;
@@ -35,7 +29,7 @@ namespace BackupHelper
             InitializeComponent();
             listViewProfile.Groups.Add("Ungrouped", "Ungrouped");
             contextMenuStripProfile.Opening += ContextMenuStripProfile_Opening;
-            labelVersion.Text = $"Version {Application.ProductVersion} ©{Application.CompanyName} 2022";
+            labelVersion.Text = $"Version {System.Windows.Forms.Application.ProductVersion} ©{System.Windows.Forms.Application.CompanyName} 2023";
             KeyPreview = true;
             ClickTimer.Elapsed += ClickTimer_Elapsed;
             ClickTimer.AutoReset = false;
@@ -159,13 +153,11 @@ namespace BackupHelper
             {
                 toolStripMenuItemChangeName.Enabled = true;
                 toolStripMenuItemClone.Enabled = true;
-                toolStripMenuItemDeleteProfile.Enabled = true;
             }
             else if (listViewProfile.SelectedItems.Count > 1)
             {
                 toolStripMenuItemChangeName.Enabled = false;
                 toolStripMenuItemClone.Enabled = false;
-                toolStripMenuItemDeleteProfile.Enabled = false;
             }
             else
                 e.Cancel = true;
@@ -176,7 +168,7 @@ namespace BackupHelper
             try
             {
                 Profiles = DBAccess.ListProfiles().OrderBy(p => p.ListViewIndex).ToList();
-                
+
                 foreach (Profile prof in Profiles)
                 {
                     ListViewItem item = new ListViewItem();
@@ -206,7 +198,7 @@ namespace BackupHelper
         {
             foreach (ListViewItem item in listViewProfile.Items)
             {
-                Profile profile= Profiles.Find(o => o.Id == (int)item.Tag);
+                Profile profile = Profiles.Find(o => o.Id == (int)item.Tag);
 
                 if (profile.ListViewIndex != item.Index)
                 {
@@ -317,21 +309,20 @@ namespace BackupHelper
             }
         }
 
-        private void DeleteSelectedProfile()
+        private void DeleteSelectedProfiles()
         {
             try
             {
-                ListViewItem selectedItem = listViewProfile.SelectedItems[0];
-                Profile profile = Profiles.Find(p => p.Id == int.Parse(selectedItem.Tag.ToString()));
-                string text = $"Delete \"{profile.Name}\"?";
+                if (MessageBox.Show("Delete selected profiles(s)?", "Warning", MessageBoxButtons.OKCancel) == DialogResult.Cancel) return;
 
-                if (MessageBox.Show(text, "", MessageBoxButtons.OKCancel) == DialogResult.OK)
+                foreach (ListViewItem item in listViewProfile.SelectedItems)
                 {
+                    Profile profile = Profiles.Find(p => p.Id == int.Parse(item.Tag.ToString()));
                     DBAccess.DeleteProfile(profile);
                     Profiles.Remove(profile);
-                    listViewProfile.Items.Remove(selectedItem);
+                    listViewProfile.Items.Remove(item);
                     UpdateProfileListViewIndexes();
-                    //ResizeForm();
+                    //ResizeForm(); 
                 }
             }
             catch (ArgumentOutOfRangeException)
@@ -348,7 +339,10 @@ namespace BackupHelper
         {
             try
             {
-                System.Diagnostics.Process.Start(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\log.txt");
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { 
+                    FileName = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\log.txt",
+                    UseShellExecute = true
+                });
             }
             catch (Exception e)
             {
@@ -360,7 +354,7 @@ namespace BackupHelper
         {
             if (args.KeyCode == Keys.Delete)
             {
-                if (listViewProfile.SelectedItems.Count > 0) DeleteSelectedProfile();
+                if (listViewProfile.SelectedItems.Count > 0) DeleteSelectedProfiles();
             }
             else if (args.KeyCode == Keys.Enter)
             {
@@ -469,7 +463,7 @@ namespace BackupHelper
                         DBAccess.UpdateProfileListViewIndex(selectedProfile);
                         DBAccess.UpdateProfileListViewIndex(nextProfile);
                     }
-                    catch (Exception){}
+                    catch (Exception) { }
                     throw;
                 }
 
@@ -501,7 +495,7 @@ namespace BackupHelper
 
         private void ToolStripMenuItemDeleteProfile_Click(object sender, EventArgs e)
         {
-            DeleteSelectedProfile();
+            DeleteSelectedProfiles();
         }
 
         private void ToolStripMenuItemClone_Click(object sender, EventArgs e)
@@ -510,11 +504,11 @@ namespace BackupHelper
 
             Profile clonedProfile = profile.Clone();
             clonedProfile.Name = GenerateEnumeratedName(clonedProfile.Name);
-            List<Options> clonedOptions = new List<Options>();
+            List<Options> clonedOptions = new();
 
             foreach (Options option in DBAccess.ListProfileOptions(profile))
             {
-                Options clonedOption= option.Clone();
+                Options clonedOption = option.Clone();
                 clonedOption.Profile = clonedProfile;
                 clonedOptions.Add(clonedOption);
             }
@@ -524,9 +518,9 @@ namespace BackupHelper
             Profiles.Add(clonedProfile);
 
             foreach (Options clonedOption in clonedOptions)
-                DBAccess.AddOption(clonedOption);
+                DBAccess.CreateOption(clonedOption);
 
-            ListViewItem item = new ListViewItem();
+            ListViewItem item = new();
             EditListViewItem(clonedProfile, item);
             listViewProfile.Items.Add(item);
             //ResizeForm();

@@ -1,24 +1,26 @@
 ﻿using FileControlUtility;
-using System.Linq;
 
 namespace BackupHelper.model
 {
     public class Options : TransferSettings
     {
         public int Id { get; set; }
-        public bool AllowIgnoreFileExt { get; set; }
+        public bool FilterFilesAndExts { get; set; }
+        public bool FilterDirectories { get; set; }
         public int ListViewIndex { get; set; }
         public Profile Profile { get; set; }
 
         public Options()
         {
-            SpecifiedFileNamesAndExtensions = new System.Collections.Generic.List<string>();
+            FilteredFileNamesAndExtensions = new List<string>();
+            FilteredDirectories = new List<string>();
         }
 
         public Options Clone()
         {
             Options optionClone = (Options)MemberwiseClone();
-            optionClone.SpecifiedFileNamesAndExtensions = SpecifiedFileNamesAndExtensions.ToList();
+            optionClone.FilteredFileNamesAndExtensions = FilteredFileNamesAndExtensions.ToList();
+            optionClone.FilteredDirectories = FilteredDirectories.ToList();
             return optionClone;
         }
 

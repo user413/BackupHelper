@@ -173,7 +173,8 @@ namespace BackupHelper
             {
                 Clipboard.SetDataObject(text, false, 5, 200);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 MessageBox.Show($"Error: {e.Message}");
             }
         }

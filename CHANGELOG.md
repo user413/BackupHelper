@@ -1,3 +1,13 @@
+## 1.5.0
+
+Database not compatible with previous versions
+
+New features:
+- Filter directories
+- Most errors won't cause the transfer to be entirely cancelled - FileControlUtility 1.3.0 (https://github.com/user413/FileControlUtility)
+- Delete multiple profiles/transfer options
+- Transition from .NET Framework 4.7.2 to .NET 7
+
 ## 1.4.3
 
 Fixed/altered:

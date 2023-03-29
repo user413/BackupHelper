@@ -1,12 +1,6 @@
 ﻿using BackupHelper.model;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Threading;
-using System.Windows.Forms;
 using FileControlUtility;
 
 namespace BackupHelper
@@ -16,12 +10,12 @@ namespace BackupHelper
         public readonly Profile Profile;
         public List<Options> Options;
         private readonly FormProfileMenu ProfileMenu;
-        public FileControlImpl FileControl;
+        public FileControl FileControl;
         private Thread ExecutionThread;
         private readonly FormCancelExecution CancelExecutionForm;
 
         //-- Clicking/dragdrop functions
-        private System.Timers.Timer ClickTimer = new System.Timers.Timer(300);
+        private readonly System.Timers.Timer ClickTimer = new(300);
         private int MouseDownCount = 0;
         private int MouseUpCount = 0;
         private ListViewItem ClickedItem;
@@ -172,7 +166,7 @@ namespace BackupHelper
 
                 foreach (Options option in Options)
                 {
-                    ListViewItem item = new ListViewItem();
+                    ListViewItem item = new();
                     EditListViewItem(option, item);
                     listViewOptions.Items.Add(item);
                 }
@@ -215,7 +209,7 @@ namespace BackupHelper
             try
             {
                 FormEditOptions form = FormEditOptions.GetInstance(this);
-                
+
                 if (form.Visible)
                     form.WindowState = FormWindowState.Normal;
                 else
@@ -232,7 +226,7 @@ namespace BackupHelper
             try
             {
                 Options option = Options.Find(o => o.Id == (int)listViewOptions.SelectedItems[0].Tag);
-                
+
                 FormEditOptions form = FormEditOptions.GetInstance(this, option);
 
                 if (form.Visible)
@@ -254,7 +248,7 @@ namespace BackupHelper
         {
             if (item == null)
                 item = GetListViewItemById(option.Id);
-                
+
             string transferMethod = !option.CleanDestinyDirectory ? option.GetTransferMethodDescription(option.FileNameConflictMethod) : "None";
 
             //string[] range = Enumerable.Repeat("", Enum.GetNames(typeof(ListViewOptionSubItemIndex)).Length).ToArray();
@@ -270,7 +264,7 @@ namespace BackupHelper
                 option.DeleteUncommonFiles.ToString(),
                 option.ReenumerateRenamedFiles.ToString()
             });
-            
+
             item.Tag = option.Id;
         }
 
@@ -308,24 +302,24 @@ namespace BackupHelper
 
         private void ButtonDeleteOption_Click(object sender, EventArgs args)
         {
-            DeleteSelectedOption();
+            DeleteSelectedOptions();
         }
 
-        private void DeleteSelectedOption()
+        private void DeleteSelectedOptions()
         {
             try
             {
-                ListViewItem selectedItem = listViewOptions.SelectedItems[0];
-
-                if (MessageBox.Show("Delete selected option?", "", MessageBoxButtons.OKCancel) == DialogResult.OK)
+                if (MessageBox.Show("Delete selected option(s)?", "", MessageBoxButtons.OKCancel) == DialogResult.Cancel) return;
+                
+                foreach (var item in listViewOptions.SelectedItems)
                 {
-                    var option = Options.Find(o => o.Id == (int)selectedItem.Tag);
+                    var option = Options.Find(o => o.Id == (int)listViewOptions.SelectedItems[0].Tag);
                     DBAccess.DeleteOption(option);
                     Options.Remove(option);
-                    selectedItem.Remove();
+                    listViewOptions.SelectedItems[0].Remove();
                     Program.UpdateLastTimeModified(Profile);
                     UpdateOptionListViewIndexes();
-                    //ResizeForm();
+                    //ResizeForm(); 
                 }
             }
             catch (ArgumentOutOfRangeException)
@@ -342,7 +336,7 @@ namespace BackupHelper
         {
             try
             {
-                if (Options.Count() == 0)
+                if (Options.Count == 0)
                 {
                     MessageBox.Show("No options were added.");
                     return;
@@ -351,12 +345,14 @@ namespace BackupHelper
                 List<Options> options = Options.OrderBy(o => o.ListViewIndex).Select(o => o.Clone()).ToList();
                 foreach (Options o in options)
                 {
-                    if (!o.AllowIgnoreFileExt) o.SpecifiedFileNamesAndExtensions.Clear(); //-- Names must be ignored
+                    if (!o.FilterFilesAndExts) o.FilteredFileNamesAndExtensions.Clear(); //-- Names must be ignored
+                    if (!o.FilterDirectories) o.FilteredDirectories.Clear();
                     o.SourcePath = Environment.ExpandEnvironmentVariables(o.SourcePath);
                     o.DestinyPath = Environment.ExpandEnvironmentVariables(o.DestinyPath);
                 }
 
-                FileControl = new FileControlImpl(this);
+                FileControl = new();
+                Program.ConfigureFileEvents(FileControl, this);
                 progressBarOptions.Maximum = FileControl.FilesTotal(options.ToList<TransferSettings>());
 
                 //this.OptionIsExecuting = true;
@@ -381,7 +377,7 @@ namespace BackupHelper
                 {
                     try
                     {
-                        FileControl.ManageFiles(options.ToList<TransferSettings>());
+                        FileControl.Transfer(options.ToList<TransferSettings>());
                     }
                     catch (Exception e)
                     {
@@ -410,9 +406,9 @@ namespace BackupHelper
                         Enabled = true;
 
                         ProfileMenu.LastReport = new FormReport(this, FileControl.TransferedFilesReports, FileControl.NotTransferedFilesReports,
-                            FileControl.RenamedFilesReports, FileControl.CreatedDirReports, FileControl.ReplacedFilesReports, 
+                            FileControl.RenamedFilesReports, FileControl.CreatedDirReports, FileControl.ReplacedFilesReports,
                             FileControl.RemovedFilesAndDirReports);
-                        
+
                         if (checkBoxShowResult.Checked)
                             ProfileMenu.LastReport.Show();
                     }));
@@ -455,18 +451,40 @@ namespace BackupHelper
 
         private void ContextMenuStripOptionsList_Opening(object sender, CancelEventArgs args)
         {
-            if (listViewOptions.SelectedItems.Count != 1) args.Cancel = true;
+            if (listViewOptions.SelectedItems.Count < 1)
+            {
+                args.Cancel = true;
+                return;
+            }
+
+            if (listViewOptions.SelectedItems.Count > 1)
+            {
+                //toolStripMenuItemClone.Enabled = false;
+                //toolStripMenuItemRemove.Enabled = false;
+                toolStripMenuItemCopySourcePath.Enabled = false;
+                toolStripMenuItemCopyDestinyPath.Enabled = false;
+                toolStripMenuItemOpenSourceFolder.Enabled = false;
+                toolStripMenuItemOpenDestinyFolder.Enabled = false;
+                return;
+            }
+
+            toolStripMenuItemCopySourcePath.Enabled = true;
+            toolStripMenuItemCopyDestinyPath.Enabled = true;
+            toolStripMenuItemOpenSourceFolder.Enabled = true;
+            toolStripMenuItemOpenDestinyFolder.Enabled = true;
         }
 
         private void ToolStripMenuItemCopySourcePath_Click(object sender, EventArgs e)
         {
-            CopyToClipboard(listViewOptions.SelectedItems[0].Text);
+            //CopyToClipboard(listViewOptions.SelectedItems[0].Text);
+            Clipboard.SetText(listViewOptions.SelectedItems[0].Text);
         }
 
         private void ToolStripMenuItemCopyDestinyPath_Click(object sender, EventArgs e)
         {
             //CopyToClipboard(listViewOptions.SelectedItems[0].SubItems[(int)ListViewOptionSubItemIndex.INDEX_DESTINY_PATH].Text);
-            CopyToClipboard(Options.Find(o => o.Id == (int)listViewOptions.SelectedItems[0].Tag).DestinyPath);
+            //CopyToClipboard(Options.Find(o => o.Id == (int)listViewOptions.SelectedItems[0].Tag).DestinyPath);
+            Clipboard.SetText(Options.Find(o => o.Id == (int)listViewOptions.SelectedItems[0].Tag).DestinyPath);
         }
 
         private void ToolStripMenuItemOpenSourceFolder_Click(object sender, EventArgs e)
@@ -489,26 +507,22 @@ namespace BackupHelper
         private void ListViewOptions_KeyPress(object sender, KeyEventArgs args)
         {
             if (args.KeyCode == Keys.Delete)
-            {
-                if (listViewOptions.SelectedItems.Count > 0) DeleteSelectedOption();
-            }
+                if (listViewOptions.SelectedItems.Count > 0) DeleteSelectedOptions();
             else if (args.KeyCode == Keys.Enter)
-            {
                 if (listViewOptions.SelectedItems.Count > 0) EditSelectedOption();
-            }
         }
 
-        private void CopyToClipboard(string text)
-        {
-            try
-            {
-                Clipboard.SetDataObject(text, false, 5, 200);
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show($"Error: {e.Message}");
-            }
-        }
+        //private void CopyToClipboard(string text)
+        //{
+        //    try
+        //    {
+        //        Clipboard.SetDataObject(text, false, 5, 200);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        MessageBox.Show($"Error: {e.Message}");
+        //    }
+        //}
 
         private void OpenFolder(string path)
         {
@@ -524,8 +538,39 @@ namespace BackupHelper
 
         private void ButtonShowResult_Click(object sender, EventArgs args)
         {
-            if (ProfileMenu.LastReport != null)
-                ProfileMenu.LastReport.Show();
+            ProfileMenu.LastReport?.Show();
+        }
+
+        private void CloneOptionToolStripMenuItem_Click(object sender, EventArgs args)
+        {
+            try
+            {
+                if (MessageBox.Show("Clone selected option(s)?", "", MessageBoxButtons.OKCancel) 
+                    == DialogResult.Cancel) return;
+
+                foreach (ListViewItem item in listViewOptions.SelectedItems)
+                {
+                    Options selectedOption = Options.Find(o => o.Id == (int)item.Tag);
+                    Options clonedOption = selectedOption.Clone();
+                    clonedOption.ListViewIndex = listViewOptions.Items.Count;
+                    DBAccess.CreateOption(clonedOption);
+                    Options.Add(clonedOption);
+                    Program.UpdateLastTimeModified(Profile);
+                    ListViewItem newItem = new();
+                    EditListViewItem(clonedOption, newItem);
+                    listViewOptions.Items.Add(newItem);
+                    //ResizeForm(); 
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
+
+        private void ToolStripMenuItemRemove_Click(object sender, EventArgs e)
+        {
+            DeleteSelectedOptions();
         }
 
         //private void LabelMoveOptionUp_Click(object sender, EventArgs args)
@@ -571,7 +616,7 @@ namespace BackupHelper
 
         //        listViewOptions.Items[selectedItemIndex] = previousItemClone;
         //        listViewOptions.Items[previousItemIndex] = selectedItemClone;
-                
+
         //        listViewOptions.Items[previousItemIndex].Selected = true;
         //    }
         //    catch (ArgumentOutOfRangeException) { }
@@ -632,32 +677,5 @@ namespace BackupHelper
         //        MessageBox.Show(e.Message);
         //    }
         //}
-
-        private void CloneOptionToolStripMenuItem_Click(object sender, EventArgs args)
-        {
-            try
-            {
-                Options selectedOption = Options.Find(o => o.Id == (int)listViewOptions.SelectedItems[0].Tag);
-
-                Options clonedOption = selectedOption.Clone();
-                clonedOption.ListViewIndex = listViewOptions.Items.Count;
-                DBAccess.AddOption(clonedOption);
-                Options.Add(clonedOption);
-                Program.UpdateLastTimeModified(Profile);
-                ListViewItem item = new ListViewItem();
-                EditListViewItem(clonedOption, item);
-                listViewOptions.Items.Add(item);
-                //ResizeForm();
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
-        }
-
-        private void ToolStripMenuItemRemove_Click(object sender, EventArgs e)
-        {
-            DeleteSelectedOption();
-        }
     }
 }

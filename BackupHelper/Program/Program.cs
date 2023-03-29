@@ -1,13 +1,8 @@
-﻿using BackupHelper.model;
+using BackupHelper.model;
 using FileControlUtility;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 
 namespace BackupHelper
 {
@@ -18,6 +13,9 @@ namespace BackupHelper
 
         public static string DBPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\backup_helper.db";
         public static FormProfileMenu ProfileMenu;
+
+        //public static FileControl FC = new();
+        //static bool ShowDialogs = true; //--Whether to show dialogs when running paremeter mode
 
         [STAThread]
         static void Main(string[] args)
@@ -65,7 +63,7 @@ namespace BackupHelper
                     List<Profile> profiles = DBAccess.ListProfiles();
 
                     if (profiles.Count == 0)
-                    
+
                     {
                         dialogMessage = "No profiles saved in the database. Canceled.";
                         LogManager.WriteLine(dialogMessage);
@@ -74,7 +72,9 @@ namespace BackupHelper
                     }
 
                     string[] profileNames = profileNamesStr.Split(';');
-                    FileControlConsoleImpl fileControl = new FileControlConsoleImpl(showDialogs);
+                    
+                    FileControl fileControl = new();
+                    ConfigureConsoleFileEvents(fileControl, showDialogs);
 
                     foreach (string profileName in profileNames)
                     {
@@ -105,13 +105,14 @@ namespace BackupHelper
 
                             foreach (Options o in profile.Options)
                             {
-                                if (!o.AllowIgnoreFileExt) o.SpecifiedFileNamesAndExtensions.Clear(); //-- Names must be ignored
+                                if (!o.FilterFilesAndExts) o.FilteredFileNamesAndExtensions.Clear(); //-- Names must be ignored
+                                if (!o.FilterDirectories) o.FilteredDirectories.Clear();
                                 o.SourcePath = Environment.ExpandEnvironmentVariables(o.SourcePath);
                                 o.DestinyPath = Environment.ExpandEnvironmentVariables(o.DestinyPath);
                             }
 
                             UpdateLastTimeExecuted(profile);
-                            fileControl.ManageFiles(profile.Options.ToList<TransferSettings>());
+                            fileControl.Transfer(profile.Options.ToList<TransferSettings>());
                         }
                         catch (Exception e)
                         {
@@ -159,7 +160,7 @@ namespace BackupHelper
             //dbc.CreateDatabase();
             //    File.Create()
             //}
-            
+
             Console.WriteLine("Backup Helper - Log...");
             ProfileMenu = new FormProfileMenu();
             Application.Run(ProfileMenu);
@@ -192,6 +193,50 @@ namespace BackupHelper
             if (ProfileMenu != null)
                 //ProfileMenu.GetListViewItemById(profile.Id).SubItems[(int)ListViewProfileSubItemIndex.INDEX_TIME_EXECUTED].Text = profile.LastTimeExecuted.ToString();
                 ProfileMenu.EditListViewItem(profile);
+        }
+
+        static public void ConfigureFileEvents(FileControl fileControl, FormOptionsMenu menu)
+        {
+            fileControl.ErrorOccured += new ErrorOccuredHandler((sender, args) =>
+            {
+                FormErrorDialog form = new($"{args.ErrorMessage}{Environment.NewLine}{args.Exception.Message}");
+                form.ShowDialog();
+                args.TransferErrorAction = form.Result;
+            });
+
+            fileControl.FileExecuting += new FileExecutingHandler((sender, args) =>
+            {
+                menu.ShowCurrentFileExecution(args.TrimmedPathWithFileName.Length > 100 ?
+                    $"...{args.TrimmedPathWithFileName.Substring(args.TrimmedPathWithFileName.Length - 100)}" : args.TrimmedPathWithFileName
+                );
+            });
+
+            fileControl.LogMessageGenerated += new LogMessageGeneratedHandler((sender, message) =>
+            {
+                LogManager.WriteLine(message);
+            });
+        }
+
+        static void ConfigureConsoleFileEvents(FileControl fileControl, bool showDialogs)
+        {
+            //fileControl.FileExecuting += new FileExecutingHandler((sender, args) =>
+            //{
+
+            //});
+
+            fileControl.LogMessageGenerated += new LogMessageGeneratedHandler((sender, message) =>
+            {
+                LogManager.WriteLine(message);
+            });
+
+            if (!showDialogs) return;
+
+            fileControl.ErrorOccured += new ErrorOccuredHandler((sender, args) =>
+            {
+                FormErrorDialog form = new FormErrorDialog(args.ErrorMessage);
+                form.ShowDialog();
+                args.TransferErrorAction = form.Result;
+            });
         }
     }
 }

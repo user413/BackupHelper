@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33414.496
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackupHelper", "BackupHelper\BackupHelper.csproj", "{960576ED-78BD-460D-9C5E-3E422329FA1B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackupHelper-old", "BackupHelper-old\BackupHelper-old.csproj", "{960576ED-78BD-460D-9C5E-3E422329FA1B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{67E7840B-0306-44EA-BBD6-641E388C3C9D} = {67E7840B-0306-44EA-BBD6-641E388C3C9D}
 	EndProjectSection
@@ -12,6 +12,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileControlUtility", "..\..
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FormsUtility", "..\..\Library\FormsUtility\FormsUtility\FormsUtility.csproj", "{5645CE62-EFDE-429B-8492-9E4D55F343F9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackupHelper", "BackupHelper\BackupHelper.csproj", "{0BF5D9B5-07B9-4AE9-847D-2A2D6A9CABD3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,15 +21,17 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{960576ED-78BD-460D-9C5E-3E422329FA1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{960576ED-78BD-460D-9C5E-3E422329FA1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{960576ED-78BD-460D-9C5E-3E422329FA1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{960576ED-78BD-460D-9C5E-3E422329FA1B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{67E7840B-0306-44EA-BBD6-641E388C3C9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{67E7840B-0306-44EA-BBD6-641E388C3C9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67E7840B-0306-44EA-BBD6-641E388C3C9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5645CE62-EFDE-429B-8492-9E4D55F343F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5645CE62-EFDE-429B-8492-9E4D55F343F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5645CE62-EFDE-429B-8492-9E4D55F343F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BF5D9B5-07B9-4AE9-847D-2A2D6A9CABD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BF5D9B5-07B9-4AE9-847D-2A2D6A9CABD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BF5D9B5-07B9-4AE9-847D-2A2D6A9CABD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BF5D9B5-07B9-4AE9-847D-2A2D6A9CABD3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
