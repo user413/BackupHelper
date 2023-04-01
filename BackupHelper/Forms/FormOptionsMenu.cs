@@ -343,10 +343,16 @@ namespace BackupHelper
                 }
 
                 List<Options> options = Options.OrderBy(o => o.ListViewIndex).Select(o => o.Clone()).ToList();
+
+                //-- Expanding environment variables
                 foreach (Options o in options)
                 {
                     if (!o.FilterFilesAndExts) o.FilteredFileNamesAndExtensions.Clear(); //-- Names must be ignored
+                    else o.FilteredFileNamesAndExtensions = o.FilteredFileNamesAndExtensions.Select(f => Environment.ExpandEnvironmentVariables(f)).ToList();
+                    
                     if (!o.FilterDirectories) o.FilteredDirectories.Clear();
+                    else o.FilteredDirectories = o.FilteredDirectories.Select(d => Environment.ExpandEnvironmentVariables(d)).ToList();
+
                     o.SourcePath = Environment.ExpandEnvironmentVariables(o.SourcePath);
                     o.DestinyPath = Environment.ExpandEnvironmentVariables(o.DestinyPath);
                 }
@@ -528,7 +534,11 @@ namespace BackupHelper
         {
             try
             {
-                System.Diagnostics.Process.Start(path);
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = path,
+                    UseShellExecute = true
+                });
             }
             catch (Exception e)
             {

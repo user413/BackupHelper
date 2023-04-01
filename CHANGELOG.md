@@ -1,3 +1,11 @@
+## 1.5.1
+
+New features:
+- Support for environment variables in filtered files/extensions/directories
+
+Fixed/altered:
+- Opening folders (using windows shell) - fix
+
 ## 1.5.0
 
 Database not compatible with previous versions

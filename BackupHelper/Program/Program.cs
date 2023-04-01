@@ -103,10 +103,15 @@ namespace BackupHelper
                             LogManager.WriteLine($"Working on profile \"{profileName}\"");
                             profile.Options = DBAccess.ListProfileOptions(profile).OrderBy(o => o.ListViewIndex).ToList();
 
+                            //-- Expanding environment variables
                             foreach (Options o in profile.Options)
                             {
                                 if (!o.FilterFilesAndExts) o.FilteredFileNamesAndExtensions.Clear(); //-- Names must be ignored
+                                else o.FilteredFileNamesAndExtensions = o.FilteredFileNamesAndExtensions.Select(f => Environment.ExpandEnvironmentVariables(f)).ToList();
+
                                 if (!o.FilterDirectories) o.FilteredDirectories.Clear();
+                                else o.FilteredDirectories = o.FilteredDirectories.Select(d => Environment.ExpandEnvironmentVariables(d)).ToList();
+
                                 o.SourcePath = Environment.ExpandEnvironmentVariables(o.SourcePath);
                                 o.DestinyPath = Environment.ExpandEnvironmentVariables(o.DestinyPath);
                             }
