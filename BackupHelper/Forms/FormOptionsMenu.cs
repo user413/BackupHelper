@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Data;
 using FileControlUtility;
+using Nain.FormsUtility;
 
 namespace BackupHelper
 {
@@ -65,7 +66,7 @@ namespace BackupHelper
 
         private void ClickTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            Invoke(new Action(() =>
+            Invoke(() =>
             {
                 //if (e.Button != MouseButtons.Left) return;
                 if (ClickedItem == null)
@@ -88,7 +89,7 @@ namespace BackupHelper
                 {
                     EditSelectedOption();
                 }
-            }));
+            });
         }
 
         private void ListViewOptions_MouseDown(object sender, MouseEventArgs e)
@@ -113,44 +114,49 @@ namespace BackupHelper
 
         private void ListViewOptions_DragEnter(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(typeof(List<ListViewItem>)))
-                e.Effect = DragDropEffects.Move;
-            else
-                e.Effect = DragDropEffects.None;
+            //if (e.Data.GetDataPresent(typeof(List<ListViewItem>)))
+            //    e.Effect = DragDropEffects.Move;
+            //else
+            //    e.Effect = DragDropEffects.None;
+
+            ListViewUtility.DragEnter(e);
         }
 
         private void ListViewOptions_DragDrop(object sender, DragEventArgs args)
         {
             try
             {
-                List<ListViewItem> selectedItems = (List<ListViewItem>)args.Data.GetData(typeof(List<ListViewItem>));
-                Point targetCoordinates = listViewOptions.PointToClient(new Point(args.X, args.Y));
-                ListViewItem targetItem = listViewOptions.GetItemAt(targetCoordinates.X, targetCoordinates.Y);
+                //List<ListViewItem> selectedItems = (List<ListViewItem>)args.Data.GetData(typeof(List<ListViewItem>));
+                //Point targetCoordinates = listViewOptions.PointToClient(new Point(args.X, args.Y));
+                //ListViewItem targetItem = listViewOptions.GetItemAt(targetCoordinates.X, targetCoordinates.Y);
 
-                if (targetItem == null || selectedItems.Exists(i => i == targetItem) /*|| targetItem.Group != selectedItems[0].Group*/) return;
+                //if (targetItem == null || selectedItems.Exists(i => i == targetItem) /*|| targetItem.Group != selectedItems[0].Group*/) return;
 
-                bool indexIsBehind = selectedItems.Last().Index < targetItem.Index;
+                //bool indexIsBehind = selectedItems.Last().Index < targetItem.Index;
 
-                try
-                {
-                    foreach (ListViewItem i in selectedItems)
-                    {
-                        listViewOptions.Items.Remove(i);
-                        i.Group = targetItem.Group;
-                    }
+                //try
+                //{
+                //    foreach (ListViewItem i in selectedItems)
+                //    {
+                //        listViewOptions.Items.Remove(i);
+                //        i.Group = targetItem.Group;
+                //    }
 
-                    for (int i = 0; i < selectedItems.Count; i++)
-                        listViewOptions.Items.Insert(indexIsBehind ? targetItem.Index + 1 + i : targetItem.Index, selectedItems[i]);
+                //    for (int i = 0; i < selectedItems.Count; i++)
+                //        listViewOptions.Items.Insert(indexIsBehind ? targetItem.Index + 1 + i : targetItem.Index, selectedItems[i]);
 
-                    //-- Due to a bug / makes items appear in the correct listview positions
-                    //string tempGName = targetItem.Group.Header;
-                    //targetItem.Group.Header = "tmp";
-                    //targetItem.Group.Header = tempGName;
-                }
-                finally
-                {
-                    UpdateOptionListViewIndexes();
-                }
+                //    //-- Due to a bug / makes items appear in the correct listview positions
+                //    //string tempGName = targetItem.Group.Header;
+                //    //targetItem.Group.Header = "tmp";
+                //    //targetItem.Group.Header = tempGName;
+                //}
+                //finally
+                //{
+                //    UpdateOptionListViewIndexes();
+                //}
+
+                ListViewUtility.DragDrop(listViewOptions, args);
+                UpdateOptionListViewIndexes();
             }
             catch (Exception e)
             {

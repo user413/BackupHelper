@@ -1,5 +1,6 @@
 ﻿using BackupHelper.model;
 using BinanceAutoTrader;
+using Nain.FormsUtility;
 using System.Data;
 using System.Reflection;
 
@@ -48,7 +49,7 @@ namespace BackupHelper
 
         private void ClickTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            Invoke(new Action(() =>
+            Invoke(() =>
             {
                 if (ClickedItem == null)
                 {
@@ -58,6 +59,7 @@ namespace BackupHelper
 
                 if (MouseDownCount == 1)
                 {
+                    //perform dragdrop if no mouseup
                     if (MouseUpCount > 0) return;
                     List<ListViewItem> selectedItems = listViewProfile.SelectedItems.Cast<ListViewItem>().ToList();
 
@@ -66,11 +68,11 @@ namespace BackupHelper
 
                     listViewProfile.DoDragDrop(selectedItems, DragDropEffects.Move);
                 }
-                else
+                else //double click
                 {
                     OpenSelectedProfile();
                 }
-            }));
+            });
         }
 
         private void ListViewProfile_MouseUp(object sender, MouseEventArgs e)
@@ -102,44 +104,59 @@ namespace BackupHelper
 
         private void ListViewProfile_DragEnter(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(typeof(List<ListViewItem>)))
-                e.Effect = DragDropEffects.Move;
-            else
-                e.Effect = DragDropEffects.None;
+            //if (e.Data.GetDataPresent(typeof(List<ListViewItem>)))
+            //    e.Effect = DragDropEffects.Move;
+            //else
+            //    e.Effect = DragDropEffects.None;
+
+            ListViewUtility.DragEnter(e);
         }
 
         private void ListViewProfile_DragDrop(object sender, DragEventArgs args)
         {
             try
             {
-                List<ListViewItem> selectedItems = (List<ListViewItem>)args.Data.GetData(typeof(List<ListViewItem>));
-                Point targetCoordinates = listViewProfile.PointToClient(new Point(args.X, args.Y));
-                ListViewItem targetItem = listViewProfile.GetItemAt(targetCoordinates.X, targetCoordinates.Y);
+                //List<ListViewItem> selectedItems = (List<ListViewItem>)args.Data.GetData(typeof(List<ListViewItem>));
+                //Point targetCoordinates = listViewProfile.PointToClient(new Point(args.X, args.Y));
+                //ListViewItem targetItem = listViewProfile.GetItemAt(targetCoordinates.X, targetCoordinates.Y);
 
-                if (targetItem == null || selectedItems.Exists(i => i == targetItem) /*|| targetItem.Group != selectedItems[0].Group*/) return;
+                //if (targetItem == null || selectedItems.Exists(i => i == targetItem) /*|| targetItem.Group != selectedItems[0].Group*/) return;
 
-                bool indexIsBehind = selectedItems.Last().Index < targetItem.Index;
+                //bool indexIsBehind = selectedItems.Last().Index < targetItem.Index;
 
-                try
-                {
-                    foreach (ListViewItem i in selectedItems)
-                    {
-                        listViewProfile.Items.Remove(i);
-                        i.Group = targetItem.Group;
-                    }
+                //try
+                //{
+                //    foreach (ListViewItem i in selectedItems)
+                //    {
+                //        listViewProfile.Items.Remove(i);
+                //        i.Group = targetItem.Group;
+                //    }
 
-                    for (int i = 0; i < selectedItems.Count; i++)
-                        listViewProfile.Items.Insert(indexIsBehind ? targetItem.Index + 1 + i : targetItem.Index, selectedItems[i]);
+                //    for (int i = 0; i < selectedItems.Count; i++)
+                //        listViewProfile.Items.Insert(indexIsBehind ? targetItem.Index + 1 + i : targetItem.Index, selectedItems[i]);
 
-                    //-- Due to a bug / makes items appear in the correct listview positions
-                    string tempGName = targetItem.Group.Header;
-                    targetItem.Group.Header = "tmp";
-                    targetItem.Group.Header = tempGName;
-                }
-                finally
-                {
-                    UpdateProfileListViewIndexes();
-                }
+                //    //string tempGName;
+                //    ListViewGroup tempGroup;
+
+                //    foreach (ListViewItem item in listViewProfile.Items)
+                //    {
+                //        //-- Due to a bug / makes items appear in the correct listview positions
+                //        //tempGName = item.Group.Header;
+                //        //item.Group.Header = "tmp";
+                //        //item.Group.Header = tempGName;
+                //        tempGroup = item.Group;
+                //        item.Group = null;
+                //        item.Group = tempGroup;
+                //        item.Selected = false; //items need to be unselected
+                //    }
+                //}
+                //finally
+                //{
+                //    UpdateProfileListViewIndexes();
+                //}
+
+                ListViewUtility.DragDrop(listViewProfile, args);
+                UpdateProfileListViewIndexes();
             }
             catch (Exception e)
             {
@@ -339,7 +356,8 @@ namespace BackupHelper
         {
             try
             {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { 
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
                     FileName = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\log.txt",
                     UseShellExecute = true
                 });

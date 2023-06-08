@@ -1,3 +1,8 @@
+## 1.5.2
+
+Fixed/altered:
+- Rearrange profiles - fixed
+
 ## 1.5.1
 
 New features:

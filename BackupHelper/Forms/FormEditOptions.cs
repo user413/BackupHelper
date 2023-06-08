@@ -1,6 +1,7 @@
 ﻿using BackupHelper.model;
 using FileControlUtility;
 using Nain;
+using Nain.FormsUtility;
 
 namespace BackupHelper
 {
@@ -78,12 +79,12 @@ namespace BackupHelper
                 foreach (string txt in option.FilteredFileNamesAndExtensions)
                     listViewFilesAndExts.Items.Add(new ListViewItem(txt));
 
-                FormsUtility.ResizeListViewColumns(listViewFilesAndExts);
+                ListViewUtility.ResizeColumns(listViewFilesAndExts);
 
                 foreach (string txt in option.FilteredDirectories)
                     listViewDirs.Items.Add(new ListViewItem(txt));
 
-                FormsUtility.ResizeListViewColumns(listViewDirs);
+                ListViewUtility.ResizeColumns(listViewDirs);
 
                 if (option.FilteredFileNamesAndExtensions.Count > 0 && option.FilterFilesAndExts)
                     tabControlFilter.SelectedTab = tabPageFilterFilesAndExts;
@@ -285,7 +286,7 @@ namespace BackupHelper
             //    args.DrawFocusRectangle();
             //}
 
-            FormsUtility.DrawItem(comboBoxMethod, args, checkBoxDeleteUncommonFiles.Checked && args.Index == 3);
+            ComboBoxUtility.DrawItem(comboBoxMethod, args, checkBoxDeleteUncommonFiles.Checked && args.Index == 3);
         }
 
         private void ComboBoxMethod_SelectedIndexChanged(object sender, EventArgs args)
@@ -386,7 +387,7 @@ namespace BackupHelper
                 }
 
                 listViewFilesAndExts.Items.Add(new ListViewItem(fileOrExt));
-                FormsUtility.ResizeListViewColumns(listViewFilesAndExts);
+                ListViewUtility.ResizeColumns(listViewFilesAndExts);
             }
             catch (Exception e)
             {
@@ -413,7 +414,7 @@ namespace BackupHelper
                 }
 
                 listViewDirs.Items.Add(new ListViewItem(dir));
-                FormsUtility.ResizeListViewColumns(listViewDirs);
+                ListViewUtility.ResizeColumns(listViewDirs);
             }
             catch (Exception e)
             {
@@ -445,7 +446,7 @@ namespace BackupHelper
                 return;
             }
 
-            FormsUtility.ResizeListViewColumns(listView);
+            ListViewUtility.ResizeColumns(listView);
         }
 
         private ListViewItem FindListViewItem(ListView listView, string text)
