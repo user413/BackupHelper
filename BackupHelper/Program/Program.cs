@@ -11,8 +11,9 @@ namespace BackupHelper
         [DllImport("Kernel32.dll")]
         static extern bool AttachConsole(int processId);
 
-        public static string DBPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\backup_helper.db";
-        public static FormProfileMenu ProfileMenu;
+        internal static string WorkingDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        internal static string DBPath = WorkingDirectory + "\\backup_helper.db";
+        internal static FormProfileMenu ProfileMenu;
 
         //public static FileControl FC = new();
         //static bool ShowDialogs = true; //--Whether to show dialogs when running paremeter mode

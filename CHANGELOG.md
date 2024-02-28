@@ -1,3 +1,8 @@
+## 1.5.3
+
+Fixed/altered:
+- Profile shortcuts - incorrect assembly name - fix
+
 ## 1.5.2
 
 Fixed/altered:

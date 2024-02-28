@@ -30,7 +30,11 @@ namespace BackupHelper
             InitializeComponent();
             listViewProfile.Groups.Add("Ungrouped", "Ungrouped");
             contextMenuStripProfile.Opening += ContextMenuStripProfile_Opening;
-            labelVersion.Text = $"Version {System.Windows.Forms.Application.ProductVersion} ©{System.Windows.Forms.Application.CompanyName} 2023";
+            
+            int strToRemove = Application.ProductVersion.IndexOf('+');
+            string version = strToRemove < 0 ? Application.ProductVersion : Application.ProductVersion[..strToRemove];
+            
+            labelVersion.Text = $"Version {version} ©{Application.CompanyName} 2024";
             KeyPreview = true;
             ClickTimer.Elapsed += ClickTimer_Elapsed;
             ClickTimer.AutoReset = false;
@@ -577,7 +581,7 @@ namespace BackupHelper
 
                 if (saveFileDialogShortcut.ShowDialog() == DialogResult.OK)
                 {
-                    string content = $"\"{Assembly.GetExecutingAssembly().Location}\" \"{string.Join(";", selectedProfiles.Select(p => p.Name))}\"{Environment.NewLine}pause";
+                    string content = $"\"{Program.WorkingDirectory}\\{Application.ProductName}.exe\" \"{string.Join(";", selectedProfiles.Select(p => p.Name))}\"{Environment.NewLine}pause";
                     File.WriteAllText(saveFileDialogShortcut.FileName, content);
                     MessageBox.Show($"File saved as \"{saveFileDialogShortcut.FileName}\"");
                 }

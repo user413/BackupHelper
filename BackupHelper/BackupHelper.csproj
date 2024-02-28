@@ -9,7 +9,7 @@
     <Copyright>Copyright © Nain 2023</Copyright>
     <FileVersion></FileVersion>
     <ApplicationIcon>Resources\backup_helper_icon.ico</ApplicationIcon>
-    <Version>1.5.2</Version>
+    <Version>1.5.3</Version>
     <Authors>Nain</Authors>
     <Title>BackupHelper</Title>
     <Description>Small .NET  7 app to facilitate backup of files and directories with advanced settings and binary comparison. These settings are saved into profiles.</Description>
@@ -20,6 +20,10 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
